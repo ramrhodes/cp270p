@@ -14,33 +14,24 @@ library(prioritizr)
 pu <- here("rasters", "mz_id.tif")
 pu_rast <-  raster(pu)
 
-# print planning unit
 print(pu_rast)
 
-# plot planning unit
 plot(pu_rast)
 ```
 
 ```{r}
-# load in artisinal fishing pressure cost layer
 fishing_tif <- here("rasters", "fishing.tif")
 
-# create raster from tif
 fishing_raster <- raster(fishing_tif)
 
-# plot to make sure it looks good
 plot(fishing_raster)
 
-# can also check as data frame
 fishing_df <- as.data.frame(fishing_raster)
 
-# reclassify zero cost values to 0.01 as prioritzr won't work with zeros in cost file
 fishing<- log(fishing_raster+1)/ cellStats(log(fishing_raster+1), max)
 
-# plot to see what it looks like - hooray that looks good
 plot(fishing)
 
-# set cost to fishing layer
 cost <- fishing
 ```
 
@@ -53,7 +44,7 @@ con_features_df <- as.data.frame(features_stack)
 ```
 
 ```{r}
-# create first problem seting relative targets to 30%
+# create problem
 prob <- problem(cost, features = features_stack) %>%
   add_min_set_objective() %>%
   add_relative_targets(0.3)
@@ -63,8 +54,6 @@ print(problem)
 #solve problem
 sprob <- solve(prob)
 
-plot(sprob,  main = "Minimizing Fishing Pressure")
-```
-```{r}
+plot(sprob,  main = c("30% of 7 habitats, 50% species richness (interpolated), penalty = 0.001, edge = 0.5"))
 ```
 
