@@ -33,18 +33,23 @@ cost <- fishing
 
 ```{r}
 # load feature data
-con_features <- features_stack
+features_stack = stack(here("rasters", "multilayer_feature.tif"))
 
-con_features_df <- as.data.frame(con_features)
+con_features_df <- as.data.frame(features_stack)
 
 ```
 
 ```{r}
 # create problem
 prob <- problem(cost, features = features_stack) %>%
-  add_min_set_objective()
+  add_min_set_objective() %>%
+  add_relative_targets(0.3)
 
 print(problem)
 
+#solve problem
+sprob <- solve(prob)
+
+plot(sprob,  main = c("30% of 7 habitats, 50% species richness (interpolated), penalty = 0.001, edge = 0.5"))
 ```
 
