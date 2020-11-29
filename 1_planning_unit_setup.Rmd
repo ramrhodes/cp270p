@@ -73,8 +73,33 @@ writeRaster(mz_rast_100, here('rasters/mz_id_100.tif'), overwrite = TRUE)
 ```
 
 
-## STEP 2: Setting up existing 
+## STEP 2: Setting up existing marine protected areas
 ```{r}
+exist_mpa_path <- 'G:/group_project/Data/Existing_mpas'
+mpa_shape <- list.files(exist_mpa_path, full.names = TRUE)
+
+mpa_sf <- sf::read_sf(mpa_shape[6]) 
+
+## Check the CRS of the mpa sf
+st_crs(mpa_sf)
+
+pa_rast <- fasterize::fasterize(mpa_sf, mz_rast_id)
+
+crs(pa_rast)
+
+plot(pa_rast)
+
+## Check the CRS of the mpa sf
+st_crs(mz_eez_buffer_sf)
+
+mpa_rast <- mask(pa_rast, mz_eez_sf) 
+crs(mpa_rast)
+
+plot(mpa_rast)
+
+# Write as tif
+writeRaster(mpa_rast, here('rasters/mpa.tif'), overwrite = TRUE)
+
 
 ```
 
