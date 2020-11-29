@@ -24,6 +24,10 @@ fishing_tif <- here("rasters", "fishing.tif")
 
 fishing_raster <- raster(fishing_tif)
 
+plot(fishing_raster)
+
+fishing_df <- as.data.frame(fishing_raster)
+
 fishing<- log(fishing_raster+1)/ cellStats(log(fishing_raster+1), max)
 
 plot(fishing)
