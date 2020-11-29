@@ -1,0 +1,152 @@
+---
+title: "conservation features"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# load packages
+library(raster)
+library(tidyverse)
+library(sf)
+library(here)
+library(fasterize)
+library(janitor)
+```
+
+## STEP 1: Let's start with Coral
+```{r}
+# Bring in MZ raster
+mz_rast <- raster(here("rasters/mz_id.tif"))
+
+## Path to get data on G shared drive at Bren
+coral_path <- 'G:/group_project/Data/Habitats/coral'
+coral_shape <- list.files(coral_path, full.names = TRUE) 
+
+# Read in shapefile
+coral_sf <- sf::read_sf(coral_shape[6])%>% 
+  select("METADATA_I", "LOC_DEF", "GIS_AREA_K", "START_DATE", "END_DATE", "Shape_Leng", "Shape_Le_1", "Shape_Area") %>% 
+  janitor::clean_names()
+
+# Check the CRS of the coral sf
+st_crs(coral_sf)
+
+# Create data frame to easily check data inside coral sf
+coral_df <- coral_sf %>% as.data.frame() %>% select(-geometry)
+
+# make a raster
+coral_raster <- fasterize::fasterize(coral_sf, mz_rast)%>%
+  mask(mz_eez_buffer_sf)
+
+plot(coral_raster)
+
+# save as raster
+writeRaster(coral_raster, here('rasters/coral.tif'), overwrite = TRUE)
+
+```
+
+## STEP 2: Let's bring in mangroves
+```{r}
+# Bring in MZ raster
+mz_eez <- raster(here("rasters/mz_eez.tif"))
+
+## Path to get data on G shared drive at Bren
+mangrove_path <- 'G:/group_project/Data/Habitats/mangroves'
+mangrove_shape <- list.files(mangrove_path, full.names = TRUE)
+
+# Read in shapefile
+mangrove_sf <- sf::read_sf(mangrove_shape[6]) %>%
+  select("OBJECTID", "ISO3", "AREA_KM2", "AREA_M2", "geometry")
+
+plot(mangrove_sf)
+
+# Check the CRS of the coral sf
+st_crs(mangrove_sf)
+
+# Create data frame to easily check data inside coral sf
+mangrove_df <- mangrove_sf %>% as.data.frame() %>% select(-geometry)
+
+# make a raster
+mangrove_raster <- fasterize::fasterize(mangrove_sf, mz_rast)%>%
+  mask(mz_eez_buffer_sf)
+
+plot(mangrove_raster)
+
+# save as raster
+#writeRaster(coral_raster, here('rasters/mangrove.tif'), overwrite = TRUE)
+
+```
+
+## Now lets do seamounts
+```{r}
+# load in seamount data
+seamount_path <- 'G:/group_project/Data/Habitats/seamounts'
+seamount_shape <- list.files(seamount_path, full.names = TRUE)
+
+## load as simple feature
+seamount_sf <- sf::read_sf(seamount_shape[6]) 
+
+## Check the CRS of the seamount sf
+st_crs(seamount_sf)
+
+seamount_raster <- fasterize::fasterize(seamount_sf, mz_rast)%>%
+  mask(mz_eez_buffer_sf)
+
+plot(seamount_raster)
+
+# write as tif file
+writeRaster(seamount_raster, here('rasters/seamount.tif'), overwrite = TRUE)
+```
+
+## Now lets do knolls
+```{r}
+knolls_path <- 'G:/group_project/Data/Habitats/knolls'
+knolls_shape <- list.files(knolls_path, full.names = TRUE)
+
+knolls_sf <- sf::read_sf(knolls_shape[6]) 
+
+## Check the CRS of the knolls sf
+st_crs(knolls_sf)
+
+knolls_raster <- fasterize::fasterize(knolls_sf, mz_rast)%>%
+  mask(mz_eez_buffer_sf)
+
+plot(knolls_raster)
+
+# write as tif file
+writeRaster(knolls_raster, here('rasters/knolls.tif'), overwrite = TRUE)
+
+```
+
+## Now lets do seagrass
+```{r}
+seagrass_path <- 'G:/group_project/Data/Habitats/seagrass'
+seagrass_shape <- list.files(seagrass_path, full.names = TRUE)
+
+seagrass_sf <- sf::read_sf(seagrass_shape[22]) %>% 
+  select("PARENT_ISO", "FAMILY", "SPECIES", "PROTECT", "METADATA_I", "GIS_AREA_K", "Shape_Leng", "Shape_Area", "geometry")
+
+## Check the CRS of the seagrass sf
+st_crs(seagrass_sf)
+
+seagrass_raster <- fasterize::fasterize(seagrass_sf, mz_rast)%>%
+  mask(mz_eez_buffer_sf)
+
+plot(seagrass_raster)
+
+# write as tif file
+writeRaster(seagrass_raster, here('rasters/seagrass.tif'), overwrite = TRUE)
+```
+
+## Now its time to create a conservation feature raster stack
+```{r}
+features_stack <- stack(coral_raster, seagrass_raster, seamount_raster, knolls_raster)
+
+plot(features_stack)
+
+plot(features_stack, main = paste("Feature", seq_len(nlayers(features_stack))),
+     nr = 2, box = FALSE, axes = FALSE)
+
+```
+

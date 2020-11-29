@@ -1,0 +1,28 @@
+---
+title: "artisinal_fishing"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+art_fish_path <- 'G:/group_project/data/fishing_pressure/art_fish_2013_halpern_et_al_2015.tif'
+
+## Get MZ EEZ tif file
+mz_rast_id <- raster(here("rasters/mz_id.tif"))
+
+
+art_fish_rast <- raster(art_fish_path)
+
+fishingvalue <- raster::projectRaster(art_fish_rast, mz_rast_id, 
+                                            res = 10000,
+                                            method = 'ngb')
+
+plot(fishingvalue)
+
+writeRaster(fishingvalue, here('rasters/fishing.tif'), overwrite = TRUE)
+
+```
+

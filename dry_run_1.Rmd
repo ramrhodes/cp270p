@@ -1,0 +1,50 @@
+---
+title: "Prioritzr_dry_run_1"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(prioritizr)
+```
+
+```{r}
+# load raster planning unit data
+pu <- here("rasters", "mz_id.tif")
+pu_rast <-  raster(pu)
+
+print(pu_rast)
+
+plot(pu_rast)
+```
+
+```{r}
+fishing_tif <- here("rasters", "fishing.tif")
+
+fishing_raster <- raster(fishing_tif)
+
+fishing<- log(fishing_raster+1)/ cellStats(log(fishing_raster+1), max)
+
+plot(fishing)
+
+cost <- fishing
+```
+
+```{r}
+# load feature data
+con_features <- features_stack
+
+con_features_df <- as.data.frame(con_features)
+
+```
+
+```{r}
+# create problem
+prob <- problem(cost, features = features_stack) %>%
+  add_min_set_objective()
+
+print(problem)
+
+```
+

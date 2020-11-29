@@ -1,0 +1,80 @@
+---
+title: "Planning_unit_prep"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+#load in library
+library(raster)
+library(tidyverse)
+library(sf)
+library(here)
+library(fasterize)
+```
+
+## STEP 1: Setting up the MZ EEZ File 
+```{r}
+### Grab Moz EEZ from local computer
+mz_eez_path <- 'G:/group_project/data/mz_eez'
+mz_shape <- list.files(mz_eez_path, full.names = TRUE) 
+
+mz_eez_sf <- sf::read_sf(mz_shape[6]) 
+
+st_crs(mz_eez_sf)
+
+### Add a buffer of 10 km
+mz_eez_buffer_sf <- sf::st_buffer(mz_eez_sf, dist = 10000)
+
+### Create data frame from simple feature to see data more readily
+mz_eez_df <- mz_eez_sf %>% as.data.frame() %>% select(-geometry)
+
+### Use Moz EEZ to set extent
+mz_ext <- raster::extent(mz_eez_buffer_sf)
+```
+
+
+```{r}
+## Create raster with cell ids and clip to MZ EEZ
+mz_rast_id <- raster::raster(x=mz_ext, crs=crs(mz_eez_sf), res=10000) 
+
+values(mz_rast_id) <- 1:ncell(mz_rast_id)
+
+## Write raster for raster extent
+writeRaster(mz_rast_id, here('rasters/mz_eez.tif'), overwrite = TRUE)
+
+mz_rast_id <- mask(mz_rast_id, mz_eez_buffer_sf)
+
+plot(mz_rast_id)
+ 
+mz_rast_id_df <- rasterToPoints(mz_rast_id) %>% as.data.frame()
+
+## Write raster
+writeRaster(mz_rast_id, here('rasters/mz_id.tif'), overwrite = TRUE)
+```
+
+
+```{r}
+## Also need to set up rast id with higher resolution for some of our conservation feature layers like mangroves
+
+mz_rast_id_100 <- raster::raster(x=mz_ext, crs=crs(mz_eez_sf), res=10000) 
+
+values(mz_rast_id_100) <- 1:ncell(mz_rast_id_100)
+
+mz_rast_100 <- mask(mz_rast_id_100, mz_eez_buffer_sf)
+
+plot(mz_rast_100)
+ 
+mz_rast_id_df <- rasterToPoints(mz_rast_100) %>% as.data.frame()
+
+## Write raster
+writeRaster(mz_rast_100, here('rasters/mz_id_100.tif'), overwrite = TRUE)
+```
+
+
+## STEP 2: Setting up existing 
+```{r}
+
+```
+
