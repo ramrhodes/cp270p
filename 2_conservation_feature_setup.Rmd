@@ -148,5 +148,7 @@ plot(features_stack)
 plot(features_stack, main = paste("Feature", seq_len(nlayers(features_stack))),
      nr = 2, box = FALSE, axes = FALSE)
 
+writeRaster(features_stack, filename=here("rasters", "multilayer_feature.tif"), options="INTERLEAVE=BAND", overwrite=TRUE)
+
 ```
 
