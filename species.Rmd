@@ -136,7 +136,7 @@ thresh_range_rast <- subs(hcaf_mz_rast, thresh_cells_df,
   trim()### which var is the new value
 plot(thresh_range_rast)
 
-writeRaster(thresh_range_rast, here("rasters", "species_23899tif"), overwrite = T)
+writeRaster(thresh_range_rast, here("rasters", "species_23899.tif"), overwrite = T)
 
 ```
 ```{r}

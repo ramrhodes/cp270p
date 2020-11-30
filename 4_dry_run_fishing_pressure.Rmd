@@ -83,3 +83,22 @@ sprob_lock_in <- solve(prob_with_lock_in)
 plot(sprob_lock_in,  main ="30% with Existing MPAs locked in")
 ```
 
+```{r}
+# lets load in oil to lock out of design
+oil_tif <- (here("rasters", "oil.tif")) 
+oil_raster <- raster(oil_tif) 
+
+plot(oil_raster)
+
+oil_df <- as.data.frame(oil_raster)
+```
+```{r}
+prob_with_pu <- prob %>% 
+  add_locked_in_constraints(mpa_raster) %>%
+  add_locked_out_constraints(oil_raster)
+
+sprob_with_pu <- solve(prob_with_pu)
+
+plot(sprob_with_pu,  main ="30% with Existing MPAs locked in and Oil locked out")
+```
+

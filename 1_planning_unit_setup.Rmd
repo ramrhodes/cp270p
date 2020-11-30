@@ -102,4 +102,28 @@ writeRaster(mpa_rast, here('rasters/mpa.tif'), overwrite = TRUE)
 
 
 ```
+## Step 3 Load in oil
+
+```{r}
+oil_tif <- 'G:/group_project/Data/Oil_rigs/oil_rig_2013_halpern_et_al_2015_clipped.tif'
+
+#oil to raster
+oil_rast <- raster(oil_tif)
+
+# reproject 
+oil_reproj <- raster::projectRaster(oil_rast, mz_rast_id, 
+                                            res = 10000,
+                                            method = 'ngb',
+                                            crs = crs(mz_rast_id))
+# plot to see what it looks like
+plot(oil_reproj)
+
+# mask to jsut the EEZ
+oil_rast <- mask(oil_reproj, mz_eez_sf) 
+
+plot(oil_rast)
+
+# Write as tif
+writeRaster(oil_rast, here('rasters/oil.tif'), overwrite = TRUE)
+```
 
