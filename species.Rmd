@@ -28,12 +28,17 @@ hcaf_rast <- raster::rasterFromXYZ(xyz_df)
 
 crs(hcaf_rast) <- '+init=epsg:4326'
 
-hcaf_reproj <- raster::projectRaster(hcaf_rast, res = 10000,
-                                            method = 'ngb',
-                                            crs = crs(mz_rast))
+hcaf_reproj <- raster::projectRaster(hcaf_rast, 
+                                     mz_rast,
+                                     res = 10000, 
+                                     method = 'ngb',
+                                     crs = crs(mz_rast))
 
-hcaf_mz_rast <- raster::crop(hcaf_reproj, mz_rast)
+hcaf_mz_rast <- raster::crop(hcaf_reproj, mz_rast) 
 
+hcaf_mz_rast <-  mask(hcaf_mz_rast, mz_rast)
+
+plot(hcaf_mz_rast)
 ```
 
 
@@ -83,6 +88,7 @@ hh_range_rast <- subs(hcaf_mz_rast, hh_cells_df,
                       by = 'loiczid', ### which variable is the key
                       which = 'prob') %>% 
   trim()### which var is the new value
+
 plot(hh_range_rast)
 
 species_23273 <- writeRaster(hh_range_rast, here("rasters", "species_23273.tif"), overwrite = T)

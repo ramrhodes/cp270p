@@ -46,6 +46,8 @@ con_features_df <- as.data.frame(features_stack)
 
 plot(features_stack)
 
+# bring in species tifs
+
 ```
 
 ```{r}
@@ -93,12 +95,46 @@ plot(oil_raster)
 oil_df <- as.data.frame(oil_raster)
 ```
 ```{r}
-prob_with_pu <- prob %>% 
+prob_30<- problem(cost, features = features_stack) %>%
+  add_min_set_objective() %>%
+  add_relative_targets(0.3) %>%
   add_locked_in_constraints(mpa_raster) %>%
   add_locked_out_constraints(oil_raster)
 
-sprob_with_pu <- solve(prob_with_pu)
+sprob_30<- solve(prob_30) 
 
-plot(sprob_with_pu,  main ="30% with Existing MPAs locked in and Oil locked out")
+plot(sprob_30,  main ="Fishing Pressure - 30% Target")
+
+
 ```
+
+```{r}
+prob_50<- problem(cost, features = features_stack) %>%
+  add_min_set_objective() %>%
+  add_relative_targets(0.5) %>%
+  add_locked_in_constraints(mpa_raster) %>%
+  add_locked_out_constraints(oil_raster)
+
+sprob_50<- solve(prob_50)
+
+plot(sprob_50,  main ="Fishing Pressure - 50% Target")
+
+```
+
+```{r}
+prob_80<- problem(cost, features = features_stack) %>%
+  add_min_set_objective() %>%
+  add_relative_targets(0.8) %>%
+  add_locked_in_constraints(mpa_raster) %>%
+  add_locked_out_constraints(oil_raster)
+
+sprob_80<- solve(prob_80)
+
+plot(sprob_80,  main ="Fishing Pressure - 80% Target")
+
+```
+
+```{r}
+
+``
 
