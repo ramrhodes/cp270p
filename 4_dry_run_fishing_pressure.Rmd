@@ -8,7 +8,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 library(prioritizr)
 library(here)
-library(tmap)
+
 ```
 
 ```{r}
@@ -30,6 +30,7 @@ plot(fishing_raster)
 
 fishing_df <- as.data.frame(fishing_raster)
 
+# #scale all values 0-1 by dividing by max value using log-transformed +1 fishing values (+1 so that zero values are transformed to zero not NA)
 fishing<- log(fishing_raster+1)/ cellStats(log(fishing_raster+1), max)
 
 plot(fishing)
@@ -42,6 +43,8 @@ cost <- fishing
 features_stack = stack(here("rasters", "multilayer_feature.tif"))
 
 con_features_df <- as.data.frame(features_stack)
+
+plot(features_stack)
 
 ```
 
@@ -71,7 +74,7 @@ mpa_df <- as.data.frame(mpa_raster)
 ```
 
 ```{r}
-# Create second conservation problem to protect 30% of each habitat while minimizing cost/overal with fishing effort porxy with areas selected as existing marine protected areas in the reserve design results
+# Create second conservation problem to protect 30% of each habitat while minimizing cost/overall with fishing effort proxy with areas selected as existing marine protected areas in the reserve design results
 
 prob_with_lock_in <- prob %>% add_locked_in_constraints(mpa_raster)
 
