@@ -7,6 +7,8 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 
 library(prioritizr)
+library(here)
+library(tmap)
 ```
 
 ```{r}
@@ -54,7 +56,7 @@ print(problem)
 #solve problem
 sprob <- solve(prob)
 
-plot(sprob,  main = c("30% of 7 habitats, 50% species richness (interpolated), penalty = 0.001, edge = 0.5"))
+plot(sprob,  main = c("30% Targets"))
 ```
 
 ```{r}
@@ -72,5 +74,9 @@ mpa_df <- as.data.frame(mpa_raster)
 # Create second conservation problem to protect 30% of each habitat while minimizing cost/overal with fishing effort porxy with areas selected as existing marine protected areas in the reserve design results
 
 prob_with_lock_in <- prob %>% add_locked_in_constraints(mpa_raster)
+
+sprob_lock_in <- solve(prob_with_lock_in)
+
+plot(sprob_lock_in,  main ="30% with Existing MPAs locked in")
 ```
 
