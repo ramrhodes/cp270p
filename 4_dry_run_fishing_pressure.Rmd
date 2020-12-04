@@ -8,6 +8,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 library(prioritizr)
 library(here)
+library(tidyverse)
 
 ```
 
@@ -31,7 +32,7 @@ plot(fishing_raster)
 fishing_df <- as.data.frame(fishing_raster)
 
 # #scale all values 0-1 by dividing by max value using log-transformed +1 fishing values (+1 so that zero values are transformed to zero not NA)
-fishing<- log(fishing_raster+1)/ cellStats(log(fishing_raster+1), max)
+fishing<- log(fishing_raster+1)/cellStats(log(fishing_raster+1), max)
 
 plot(fishing)
 
@@ -55,14 +56,14 @@ plot(features_stack)
 # create problem
 prob <- problem(cost, features = features_stack) %>%
   add_min_set_objective() %>%
-  add_relative_targets(0.3)
+  add_relative_targets(0.2)
 
 print(problem)
 
 #solve problem
 sprob <- solve(prob)
 
-plot(sprob,  main = c("30% Targets"))
+plot(sprob,  main = c("Fishing Pressure - 20% Targets"))
 ```
 
 ```{r}
@@ -83,7 +84,7 @@ prob_with_lock_in <- prob %>% add_locked_in_constraints(mpa_raster)
 
 sprob_lock_in <- solve(prob_with_lock_in)
 
-plot(sprob_lock_in,  main ="30% with Existing MPAs locked in")
+plot(sprob_lock_in,  main ="20% with Existing MPAs locked in")
 ```
 
 ```{r}
@@ -91,20 +92,20 @@ plot(sprob_lock_in,  main ="30% with Existing MPAs locked in")
 oil_tif <- (here("rasters", "oil.tif")) 
 oil_raster <- raster(oil_tif) 
 
-plot(oil_raster)
-
 oil_df <- as.data.frame(oil_raster)
 ```
+
+
 ```{r}
 prob_30<- problem(cost, features = features_stack) %>%
   add_min_set_objective() %>%
-  add_relative_targets(0.3) %>%
+  add_relative_targets(0.2) %>%
   add_locked_in_constraints(mpa_raster) %>%
   add_locked_out_constraints(oil_raster)
 
 sprob_30<- solve(prob_30) 
 
-plot(sprob_30,  main ="Fishing Pressure - 30% Target")
+plot(sprob_30,  main ="Fishing Pressure - 20% Target w MPAs")
 
 
 ```
@@ -138,4 +139,3 @@ plot(sprob_80,  main ="Fishing Pressure - 80% Target")
 ```{r}
 
 ``
-

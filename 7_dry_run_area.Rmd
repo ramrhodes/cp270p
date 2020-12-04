@@ -1,0 +1,51 @@
+---
+title: "Area"
+author: "Rachel Rhodes"
+date: "12/3/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(prioritizr)
+library(here)
+library(tidyverse)
+```
+
+```{r}
+## Assuming we have run script 4 already some of these variable will be in the environment
+
+# we will want to load a new cost layer though using distance
+area_tif <- here("rasters", "mz_id.tif")
+
+area_raster <- raster(area_tif)
+
+plot(area_raster)
+
+values(area_raster) <- 0.5
+
+area_df <- as.data.frame(area_raster)
+
+plot(area_raster)
+
+cost_area <- area_raster
+
+```
+
+
+
+```{r}
+prob_area <- problem(cost_area, features = features_stack) %>%
+  add_min_set_objective() %>%
+  add_relative_targets(0.2)
+
+print(prob_area)
+
+#solve problem
+sprob_area <- solve(prob_area)
+
+plot(sprob_area,  main = c("Area - 20% Targets"))
+
+```
+

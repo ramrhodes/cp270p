@@ -1,0 +1,46 @@
+---
+title: "5_dry_run_ports"
+author: "Rachel Rhodes"
+date: "12/3/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(prioritizr)
+library(here)
+library(tidyverse)
+```
+
+```{r}
+## Assuming we have run script 4 already some of these variable will be in the environment
+
+# we will want to load a new cost layer though
+port_tif <- here("rasters", "port_dist_rast.tif")
+
+port_raster <- raster(port_tif)
+
+plot(port_raster)
+
+port_df <- as.data.frame(port_raster)
+
+ports<- log(port_raster+1)/ cellStats(log(port_raster+1), max)
+
+plot(ports)
+
+cost_ports <- ports
+```
+```{r}
+prob_ports <- problem(cost_ports, features = features_stack) %>%
+  add_min_set_objective() %>%
+  add_relative_targets(0.2)
+
+print(prob_ports)
+
+#solve problem
+sprob_ports <- solve(prob_ports)
+
+plot(sprob_ports,  main = c("Ports - 20% Targets"))
+```
+
