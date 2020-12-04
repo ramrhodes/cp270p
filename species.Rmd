@@ -24,18 +24,23 @@ hcaf_df <- read_csv(here("data", "am_hcaf.csv"))
 xyz_df <- hcaf_df %>%
   select(x = center_long, y = center_lat, z = loiczid)
 
+# create a raster from the xyz dataframe
 hcaf_rast <- raster::rasterFromXYZ(xyz_df)
 
+# assign a projection
 crs(hcaf_rast) <- '+init=epsg:4326'
 
+# change raster to be projected in the same extent and crs as mz_rast
 hcaf_reproj <- raster::projectRaster(hcaf_rast, 
                                      mz_rast,
                                      res = 10000, 
                                      method = 'ngb',
                                      crs = crs(mz_rast))
 
+# make the hcaf rast match the exten of the mz and maks it
 hcaf_mz_rast <- raster::crop(hcaf_reproj, mz_rast) 
 
+# mask to just include the EEZ
 hcaf_mz_rast <-  mask(hcaf_mz_rast, mz_rast)
 
 plot(hcaf_mz_rast)
@@ -77,90 +82,70 @@ mz_snr_species <- mz %>%
                        "Fis-32975"))
 ```
 
+
 ```{r}
-# Species 1- Hammerhead
-hh_id <- 'Fis-23273'
-hh_cells_df <- mz %>%
-  filter(am_sid == hh_id)
+#create raster function by species id
+create_rast <- function(mz, species_id){
+  outfile <- sprintf(here('rasters/species/species_%s.tif'), species_id)
+  message('Processing species ', species_id, ' to create file ', outfile)
+  
+  species_df <- mz %>%
+  filter(am_sid == species_id)
 
 ### use raster::subs() to substitute in values for others
-hh_range_rast <- subs(hcaf_mz_rast, hh_cells_df,
+species_rast <- subs(hcaf_mz_rast, species_df,
                       by = 'loiczid', ### which variable is the key
-                      which = 'prob') %>% 
-  trim()### which var is the new value
+                      which = 'prob')
 
-plot(hh_range_rast)
+species_rast <- raster::projectRaster(species_rast, 
+                                     mz_rast,
+                                     res = 10000, 
+                                     method = 'ngb',
+                                     crs = crs(mz_rast))
 
-species_23273 <- writeRaster(hh_range_rast, here("rasters", "species_23273.tif"), overwrite = T)
+writeRaster(species_rast, filename = outfile, overwrite = TRUE)
 
+return('yay it works')
+
+}
 ```
 
 ```{r}
-# Species 2 - Pelagic thresher
-th_id <- 'Fis-31568'
-th_cells_df <- mz %>%
-  filter(am_sid == th_id)
-
-### use raster::subs() to substitute in values for others
-th_range_rast <- subs(hcaf_mz_rast, th_cells_df,
-                      by = 'loiczid', ### which variable is the key
-                      which = 'prob') %>% 
-  trim()### which var is the new value
-plot(th_range_rast)
-
-writeRaster(hh_range_rast, here("rasters", "species_31568.tif"), overwrite = T)
-
+#creating a vector of the top 30 species to be used in a loop
+species_vec <- c("Fis-31568",
+                       "Fis-23898",
+                       "Fis-23899",
+                       "Fis-23061",
+                       "Fis-23064",
+                       "Fis-23071",
+                       "Fis-58485",
+                       "Fis-29423",
+                       "Fis-29388",
+                       "Fis-30583",
+                       "Fis-23273",
+                       "Fis-23274",
+                       "Fis-23277",
+                       "Fis-8339",
+                       "Fis-47352",
+                       "Fis-24098",
+                       "Fis-163295",
+                       "Fis-61508",
+                       "Fis-30521",
+                       "Fis-32599",
+                       "Fis-131821",
+                       "Fis-32975")
 ```
 
-
 ```{r}
-# Species 3 - Bigeye thresher
-bt_id <- 'Fis-23898'
-bt_cells_df <- mz %>%
-  filter(am_sid == bt_id)
-
-### use raster::subs() to substitute in values for others
-bt_range_rast <- subs(hcaf_mz_rast, bt_cells_df,
-                      by = 'loiczid', ### which variable is the key
-                      which = 'prob') %>% 
-  trim()### which var is the new value
-plot(bt_range_rast)
-
-writeRaster(bt_range_rast, here("rasters", "species_23898.tif"), overwrite = T)
-
-```
-```{r}
-# Species 4 - Thresher
-thresh_id <- 'Fis-23899'
-thresh_cells_df <- mz %>%
-  filter(am_sid == thresh_id)
-
-### use raster::subs() to substitute in values for others
-thresh_range_rast <- subs(hcaf_mz_rast, thresh_cells_df,
-                      by = 'loiczid', ### which variable is the key
-                      which = 'prob') %>% 
-  trim()### which var is the new value
-plot(thresh_range_rast)
-
-writeRaster(thresh_range_rast, here("rasters", "species_23899.tif"), overwrite = T)
+#creating a loop of this function to get all the rasters at once 
+for (i in seq_along(species_vec)) {
+  create_rast(mz, species_vec[i])
+}
 
 ```
 ```{r}
-
-# Species 5 - Oceanic whitetip shark
-oceanic_id <- 'Fis-23061'
-oceanic_cells_df <- mz %>%
-  filter(am_sid == oceanic_id)
-
-### use raster::subs() to substitute in values for others
-oceanic_range_rast <- subs(hcaf_mz_rast, oceanic_cells_df,
-                      by = 'loiczid', ### which variable is the key
-                      which = 'prob') %>% 
-  trim()### which var is the new value
-plot(oceanic_range_rast)
-
-writeRaster(oceanic_range_rast, here("rasters", "species_23061.tif"), overwrite = T)
-
+species_test <- raster(here("rasters", "species", "species_Fis-131821.tif"))
+plot(species_test)
 
 ```
 

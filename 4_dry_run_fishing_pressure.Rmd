@@ -39,8 +39,9 @@ cost <- fishing
 ```
 
 ```{r}
-# load feature data
-features_stack = stack(here("rasters", "multilayer_feature.tif"))
+# load feature data - for some reason this one is not working - here("rasters", "species", "species_Fis-23071.tif")
+
+features_stack = stack(here("rasters", "multilayer_feature.tif"), here("rasters", "species", "species_Fis-31568.tif"),  here("rasters", "species", "species_Fis-23898.tif"), here("rasters", "species", "species_Fis-23899.tif"), here("rasters", "species", "species_Fis-23061.tif"), here("rasters", "species", "species_Fis-23064.tif"), here("rasters", "species", "species_Fis-58485.tif"), here("rasters", "species", "species_Fis-29423.tif"), here("rasters", "species", "species_Fis-29388.tif"), here("rasters", "species", "species_Fis-30583.tif"), here("rasters", "species", "species_Fis-23273.tif"), here("rasters", "species", "species_Fis-23274.tif"), here("rasters", "species", "species_Fis-23277.tif"), here("rasters", "species", "species_Fis-8339.tif"), here("rasters", "species", "species_Fis-47352.tif"), here("rasters", "species", "species_Fis-24098.tif"), here("rasters", "species", "species_Fis-163295.tif"), here("rasters", "species", "species_Fis-61508.tif"), here("rasters", "species", "species_Fis-30521.tif"), here("rasters", "species", "species_Fis-32599.tif"), here("rasters", "species", "species_Fis-131821.tif"), here("rasters", "species", "species_Fis-32975.tif"))
 
 con_features_df <- as.data.frame(features_stack)
 
