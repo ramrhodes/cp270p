@@ -23,6 +23,7 @@ plot(pu_rast)
 ```
 
 ```{r}
+#load artisanal fisheries raster
 fishing_tif <- here("rasters", "fishing.tif")
 
 fishing_raster <- raster(fishing_tif)
@@ -31,7 +32,7 @@ plot(fishing_raster)
 
 fishing_df <- as.data.frame(fishing_raster)
 
-# #scale all values 0-1 by dividing by max value using log-transformed +1 fishing values (+1 so that zero values are transformed to zero not NA)
+#scale all values 0-1 by dividing by max value using log-transformed +1 fishing values (+1 so that zero values are transformed to zero not NA)
 fishing<- log(fishing_raster+1)/cellStats(log(fishing_raster+1), max)
 
 plot(fishing)
@@ -48,12 +49,10 @@ con_features_df <- as.data.frame(features_stack)
 
 plot(features_stack)
 
-# bring in species tifs
-
 ```
 
 ```{r}
-# create problem
+#create problem, 20% target for features with no contraints, cost = fishing layer. Setting probelm to minimize costs. 
 prob <- problem(cost, features = features_stack) %>%
   add_min_set_objective() %>%
   add_relative_targets(0.2)
@@ -67,7 +66,7 @@ plot(sprob,  main = c("Fishing Pressure - 20% Targets"))
 ```
 
 ```{r}
-# lets load in existing MPA's to lockin to the design
+#lets load in existing MPA's to lockin to the design
 
 mpa_tif <- (here("rasters", "mpa.tif")) 
 mpa_raster <- raster(mpa_tif) 
@@ -78,9 +77,10 @@ mpa_df <- as.data.frame(mpa_raster)
 ```
 
 ```{r}
-# Create second conservation problem to protect 30% of each habitat while minimizing cost/overall with fishing effort proxy with areas selected as existing marine protected areas in the reserve design results
+#Create second conservation problem to protect 20% of each habitat while minimizing cost/overall with fishing effort proxy with areas selected as existing marine protected areas in the reserve design results
 
-prob_with_lock_in <- prob %>% add_locked_in_constraints(mpa_raster)
+prob_with_lock_in <- prob %>% 
+  add_locked_in_constraints(mpa_raster)
 
 sprob_lock_in <- solve(prob_with_lock_in)
 
@@ -88,7 +88,7 @@ plot(sprob_lock_in,  main ="20% with Existing MPAs locked in")
 ```
 
 ```{r}
-# lets load in oil to lock out of design
+#lets load in oil to lock out of design
 oil_tif <- (here("rasters", "oil.tif")) 
 oil_raster <- raster(oil_tif) 
 
@@ -97,20 +97,24 @@ oil_df <- as.data.frame(oil_raster)
 
 
 ```{r}
-prob_30<- problem(cost, features = features_stack) %>%
+#SENSITIVITY TESTS
+#20% target of con features, mpas locked in, oil rigs locked out. Minimum cost to artisinal fisheries
+prob_20<- problem(cost, features = features_stack) %>%
   add_min_set_objective() %>%
   add_relative_targets(0.2) %>%
   add_locked_in_constraints(mpa_raster) %>%
   add_locked_out_constraints(oil_raster)
 
-sprob_30<- solve(prob_30) 
+sprob_20<- solve(prob_20) 
 
-plot(sprob_30,  main ="Fishing Pressure - 20% Target w MPAs")
+plot(sprob_20,  main ="Fishing Pressure - 20% Target w MPAs")
 
 
 ```
 
 ```{r}
+
+#50% target of con features, mpas locked in, oil rigs locked out. Minimum cost to artisinal fisheries
 prob_50<- problem(cost, features = features_stack) %>%
   add_min_set_objective() %>%
   add_relative_targets(0.5) %>%
@@ -124,15 +128,8 @@ plot(sprob_50,  main ="Fishing Pressure - 50% Target")
 ```
 
 ```{r}
-prob_80<- problem(cost, features = features_stack) %>%
-  add_min_set_objective() %>%
-  add_relative_targets(0.8) %>%
-  add_locked_in_constraints(mpa_raster) %>%
-  add_locked_out_constraints(oil_raster)
 
-sprob_80<- solve(prob_80)
-
-plot(sprob_80,  main ="Fishing Pressure - 80% Target")
+#
 
 ```
 
