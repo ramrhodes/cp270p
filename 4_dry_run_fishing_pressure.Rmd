@@ -112,8 +112,10 @@ sprob_50<- solve(prob_50)
 plot(sprob_50,  main ="Fishing Pressure - 50% Target w MPAs")
 
 ```
+
+
 ```{r}
-## SENSITIVTY ANALSYSIS TEST 3: boundary length modifier
+## SENSITIVTY ANALSYSIS TEST 3: boundary length modifier of .0001
 # Minimize Fishing Cost while meeting 20% representation targets, without locking in MPAs, and locking out oil rigs
 
 prob_blm <- problem(cost, features = features_stack) %>%
