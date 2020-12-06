@@ -48,6 +48,8 @@ print(prob_ports)
 sprob_ports <- solve(prob_ports)
 
 plot(sprob_ports,  main = c("Ports - 20% Targets"))
+
+# Best objective 1.046979206016e+03, best bound 1.046556968228e+03, gap 0.0403%
 ```
 
 ```{r}

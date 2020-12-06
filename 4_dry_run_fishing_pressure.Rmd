@@ -52,6 +52,7 @@ mpa_tif <- (here("rasters", "mpa.tif"))
 mpa_raster <- raster(mpa_tif) 
 
 mpa_df <- as.data.frame(mpa_raster)
+
 ```
 
 
@@ -76,6 +77,8 @@ prob <- problem(cost, features = features_stack) %>%
 sprob<- solve(prob) 
 
 plot(sprob,  main ="Fishing Pressure - 20% Target w MPAs")
+
+# ptimal solution found (tolerance 1.00e-01) Best objective 2.436451642841e+01, best bound 2.434748800375e+01, gap 0.0699%
 
 ```
 

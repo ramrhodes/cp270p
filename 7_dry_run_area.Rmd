@@ -88,7 +88,7 @@ plot(sprob_area_50,  main ="Area - 50% Target w MPAs")
 prob_area_blm <- problem(cost, features = features_stack) %>%
   add_min_set_objective() %>%
   add_relative_targets(0.2) %>%
-  add_boundary_penalties(10) %>%
+  add_boundary_penalties()
   add_gurobi_solver(gap=0.1)
 
 print(prob_area_blm)
@@ -98,6 +98,8 @@ sprob_area_blm <- solve(prob_area_blm)
 
 plot(sprob_area_blm,  main = c("Sensitivty Analyis:Fishing Pressure - 20% Targets"))
 
-writeRaster(sprob_area_blm, here('outputs/area_blm_10.tif'), overwrite = TRUE)
+#writeRaster(sprob_area_blm, here('outputs/area_blm_10.tif'), overwrite = TRUE)
+
+# ptimal solution found (tolerance 1.00e-01) Best objective 2.126745802716e+01, best bound 2.121129170119e+01, gap 0.2641%
 ```
 
