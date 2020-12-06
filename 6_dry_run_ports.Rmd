@@ -36,11 +36,13 @@ plot(ports)
 cost_ports <- ports
 ```
 ```{r}
-#SENSITIVITY TEST
-#20% target with proximity to ports as cost layer and no MPAs and oil rigs
+# SCENARIO 1: Minimize ara while meeting 20% representation targets, locking in MPAs, and locking out oil rigs
+
 prob_ports <- problem(cost_ports, features = features_stack) %>%
   add_min_set_objective() %>%
-  add_relative_targets(0.2)
+  add_relative_targets(0.2) %>%
+  add_locked_in_constraints(mpa_raster) %>% 
+  add_locked_out_constraints(oil_raster)
 
 print(prob_ports)
 
@@ -49,18 +51,15 @@ sprob_ports <- solve(prob_ports)
 
 plot(sprob_ports,  main = c("Ports - 20% Targets"))
 
-# Best objective 1.046979206016e+03, best bound 1.046556968228e+03, gap 0.0403%
 ```
 
 ```{r}
+## SENSITIVTY ANALSYSIS TEST 1: nothing locked in or out
+# Minimize Fishing Area while meeting 20% representation targets, without locking in MPAs, and locking out oil rigs
 
-#SENSITIVITY TEST
-#20% target with proximity to ports as cost layer with MPAs and oil rigs in
 ports_20 <- problem(cost_ports, features = features_stack) %>%
   add_min_set_objective() %>%
-  add_relative_targets(0.2) %>% 
-  add_locked_in_constraints(mpa_raster) %>% 
-  add_locked_out_constraints(oil_raster)
+  add_relative_targets(0.2)
   
 
 print(ports_20)
@@ -72,10 +71,11 @@ plot(sprob_ports_20,  main = c("Ports - 20% Targets"))
 
 ```
 
-```{r}
 
-#SENSITIVITY TEST
-#50% target with proximity to ports as cost layer with MPAs and oil rigs in
+```{r}
+## SENSITIVTY ANALSYSIS TEST 2: 50% Targets
+# Minimize Fishing Cost while meeting 50% representation targets,  locking in MPAs, and locking out oil rigs
+
 ports_50 <- problem(cost_ports, features = features_stack) %>%
   add_min_set_objective() %>%
   add_relative_targets(0.5) %>% 
@@ -90,5 +90,24 @@ sprob_ports_50 <- solve(ports_50)
 
 plot(sprob_ports_50,  main = c("Ports - 50% Targets"))
 
+```
+
+```{r}
+## SENSITIVTY ANALSYSIS TEST 3: No BLM
+# Minimize Fishing Cost while meeting 20% representation targets, without locking in MPAs, and locking out oil rigs
+
+prob_area_no_blm <- problem(cost, features = features_stack) %>%
+  add_min_set_objective() %>%
+  add_relative_targets(0.2) %>%
+  add_gurobi_solver(gap=0.1)
+
+print(prob_area_no_blm)
+
+#solve problem
+sprob_area_no_blm <- solve(prob_area_no_blm)
+
+plot(sprob_area_no_blm,  main = c("Sensitivty Analyis:Fishing Pressure - 20% Targets"))
+
+#writeRaster(sprob_area_blm, here('outputs/area_blm_10.tif'), overwrite = TRUE)
 ```
 
