@@ -98,6 +98,6 @@ sprob_area_blm <- solve(prob_area_blm)
 
 plot(sprob_area_blm,  main = c("Sensitivty Analyis:Fishing Pressure - 20% Targets"))
 
-writeRaster(sprob_area_blm, here('outputs/blm_0001.tif'), overwrite = TRUE)
+writeRaster(sprob_area_blm, here('outputs/area_blm_10.tif'), overwrite = TRUE)
 ```
 
