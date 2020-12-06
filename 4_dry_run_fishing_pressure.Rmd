@@ -28,14 +28,10 @@ fishing_tif <- here("rasters", "fishing.tif")
 
 fishing_raster <- raster(fishing_tif)
 
-plot(fishing_raster)
-
 fishing_df <- as.data.frame(fishing_raster)
 
 #scale all values 0-1 by dividing by max value using log-transformed +1 fishing values (+1 so that zero values are transformed to zero not NA)
 fishing<- log(fishing_raster+1)/cellStats(log(fishing_raster+1), max)
-
-plot(fishing)
 
 cost <- fishing
 ```
@@ -47,45 +43,17 @@ features_stack = stack(here("rasters", "multilayer_feature.tif"), here("rasters"
 
 con_features_df <- as.data.frame(features_stack)
 
-plot(features_stack)
-
 ```
 
 ```{r}
-#create problem, 20% target for features with no contraints, cost = fishing layer. Setting probelm to minimize costs. 
-prob <- problem(cost, features = features_stack) %>%
-  add_min_set_objective() %>%
-  add_relative_targets(0.2)
-
-print(problem)
-
-#solve problem
-sprob <- solve(prob)
-
-plot(sprob,  main = c("Fishing Pressure - 20% Targets"))
-```
-
-```{r}
-#lets load in existing MPA's to lockin to the design
+#lets load in existing MPA's to lockin to the design and oil rigs to lock out
 
 mpa_tif <- (here("rasters", "mpa.tif")) 
 mpa_raster <- raster(mpa_tif) 
 
-plot(mpa_raster)
-
 mpa_df <- as.data.frame(mpa_raster)
 ```
 
-```{r}
-#Create second conservation problem to protect 20% of each habitat while minimizing cost/overall with fishing effort proxy with areas selected as existing marine protected areas in the reserve design results
-
-prob_with_lock_in <- prob %>% 
-  add_locked_in_constraints(mpa_raster)
-
-sprob_lock_in <- solve(prob_with_lock_in)
-
-plot(sprob_lock_in,  main ="20% with Existing MPAs locked in")
-```
 
 ```{r}
 #lets load in oil to lock out of design
@@ -95,26 +63,44 @@ oil_raster <- raster(oil_tif)
 oil_df <- as.data.frame(oil_raster)
 ```
 
-
+LET'S MAKE SOME PROBLEMS
 ```{r}
-#SENSITIVITY TESTS
-#20% target of con features, mpas locked in, oil rigs locked out. Minimum cost to artisinal fisheries
-prob_20<- problem(cost, features = features_stack) %>%
+# SCENARIO 1: Minimize Fishing Cost while meeting 20% representation targets, locking in MPAs, and locking out oil rigs
+
+prob <- problem(cost, features = features_stack) %>%
   add_min_set_objective() %>%
   add_relative_targets(0.2) %>%
   add_locked_in_constraints(mpa_raster) %>%
   add_locked_out_constraints(oil_raster)
 
-sprob_20<- solve(prob_20) 
+sprob<- solve(prob) 
 
-plot(sprob_20,  main ="Fishing Pressure - 20% Target w MPAs")
-
+plot(sprob,  main ="Fishing Pressure - 20% Target w MPAs")
 
 ```
 
-```{r}
 
-#50% target of con features, mpas locked in, oil rigs locked out. Minimum cost to artisinal fisheries
+
+```{r}
+## SENSITIVTY ANALSYSIS TEST 1: nothing locked in or out
+# Minimize Fishing Cost while meeting 20% representation targets, without locking in MPAs, and locking out oil rigs
+
+prob_no_mpas <- problem(cost, features = features_stack) %>%
+  add_min_set_objective() %>%
+  add_relative_targets(0.2)
+
+print(prob_no_mpas)
+
+#solve problem
+sprob_no_mpas <- solve(prob_no_mpas)
+
+plot(sprob_no_mpas,  main = c("Sensitivty Analyis:Fishing Pressure - 20% Targets"))
+```
+
+```{r}
+## SENSITIVTY ANALSYSIS TEST 2: 50% Targets
+# Minimize Fishing Cost while meeting 50% representation targets,  locking in MPAs, and locking out oil rigs
+
 prob_50<- problem(cost, features = features_stack) %>%
   add_min_set_objective() %>%
   add_relative_targets(0.5) %>%
@@ -123,16 +109,24 @@ prob_50<- problem(cost, features = features_stack) %>%
 
 sprob_50<- solve(prob_50)
 
-plot(sprob_50,  main ="Fishing Pressure - 50% Target")
+plot(sprob_50,  main ="Fishing Pressure - 50% Target w MPAs")
 
 ```
-
 ```{r}
+## SENSITIVTY ANALSYSIS TEST 3: boundary length modifier
+# Minimize Fishing Cost while meeting 20% representation targets, without locking in MPAs, and locking out oil rigs
 
-#
+prob_blm <- problem(cost, features = features_stack) %>%
+  add_min_set_objective() %>%
+  add_relative_targets(0.2) %>%
+  add_boundary_penalties(0.1)
 
+print(prob_blm)
+
+#solve problem
+sprob_blm <- solve(prob_blm)
+
+plot(sprob_blm,  main = c("Sensitivty Analyis:Fishing Pressure - 20% Targets"))
+```
 ```
 
-```{r}
-
-``
