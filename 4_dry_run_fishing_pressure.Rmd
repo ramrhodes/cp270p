@@ -119,7 +119,8 @@ plot(sprob_50,  main ="Fishing Pressure - 50% Target w MPAs")
 prob_blm <- problem(cost, features = features_stack) %>%
   add_min_set_objective() %>%
   add_relative_targets(0.2) %>%
-  add_boundary_penalties(0.1)
+  add_boundary_penalties(.0001) %>%
+  add_gurobi_solver(gap=0)
 
 print(prob_blm)
 
@@ -127,6 +128,8 @@ print(prob_blm)
 sprob_blm <- solve(prob_blm)
 
 plot(sprob_blm,  main = c("Sensitivty Analyis:Fishing Pressure - 20% Targets"))
+
+writeRaster(sprob_blm, here('outputs/blm_0001.tif'), overwrite = TRUE)
 ```
-```
+
 
