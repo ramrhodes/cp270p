@@ -68,7 +68,7 @@ con_features_df <- as.data.frame(features_stack)
 ## We also need to read in the mpa and oil tifs to use we created in Script 1
 
 ## MPAS:
-mpa_raster<- raster(here("rasters", "mpas.tif")) 
+mpa_raster<- raster(here("rasters", "mpa.tif")) 
 
 ## Oil
 oil_raster <- raster(here("rasters", "oil.tif")) 
