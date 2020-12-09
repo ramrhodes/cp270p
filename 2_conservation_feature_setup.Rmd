@@ -17,8 +17,11 @@ library(janitor)
 
 ## STEP 1: Let's start with Coral
 ```{r}
-## Bring in MZ raster that was created in Script 1
+## Bring in MZ raster that was created in Script 1 - 100 m resoltuion
 mz_rast_100 <- raster(here("rasters/mz_id_100.tif"))
+
+## Bring in MZ raster that was created in Script 1 - 10000 m resolution
+mz_rast <- raster(here("rasters/mz_id.tif"))
 
 ## Grag coral shapefile from local computer
 coral_path <- 'G:/group_project/Data/Habitats/coral'
@@ -36,7 +39,7 @@ st_crs(coral_sf)
 coral_df <- coral_sf %>% as.data.frame() %>% select(-geometry)
 
 ## Make a raster of the coral simple feature using mz_rast_100 - the raster we created at a smaller resolution to set extent and mask to the mz_eez
-coral_raster <- fasterize::fasterize(coral_sf, mz_rast)%>%
+coral_raster <- fasterize::fasterize(coral_sf, mz_rast_100)%>%
   mask(mz_eez_buffer_sf)
 
 ## plot to make sure it looks good
@@ -46,10 +49,15 @@ plot(coral_raster)
 coral_agg <- raster::aggregate(coral_raster, fact=100, fun=sum, na.rm=TRUE)
 coral_agg_percent <- coral_agg/10000
 
+coral_rast <- mask(coral_agg_percent, mz_eez_buffer_sf)
+
+plot(coral_rast)
+
 # save as raster
-writeRaster(coral_agg_percent, here('rasters/coral.tif'), overwrite = TRUE)
+writeRaster(coral_rast, here('rasters/coral.tif'), overwrite = TRUE)
 
 ```
+
 
 ## STEP 2: Let's bring in mangroves
 ```{r}
@@ -82,8 +90,10 @@ plot(mangrove_raster)
 mangrove_agg <- raster::aggregate(mangrove_raster, fact=100, fun=sum, na.rm=TRUE)
 mangrove_agg_percent <- mangrove_agg/10000
 
+mangrove_rast <- mask(mangrove_agg_percent, mz_eez_buffer_sf)
+
 ## Lets plot to see what it looks like
-plot(mangrove_agg_percent)
+plot(mangrove_rast)
 
 ## Lookgs good - let's save as a tif file
 writeRaster(mangrove_agg_percent, here('rasters/mangrove.tif'), overwrite = TRUE)
@@ -168,7 +178,7 @@ writeRaster(seagrass_raster, here('rasters/seagrass.tif'), overwrite = TRUE)
 ## Now its time to create a conservation feature raster stack and save as a tif
 ```{r}
 ## Create a features stack from all five critical habitats created in the previous steps
-features_stack <- stack(coral_raster, mangroves_raster, seagrass_raster, seamount_raster, knolls_raster)
+features_stack <- stack(coral_rast, mangrove_rast, seagrass_raster, seamount_raster, knolls_raster)
 
 ## Plot to see what it looks like
 plot(features_stack)
@@ -178,6 +188,5 @@ plot(features_stack, main = paste("Feature", seq_len(nlayers(features_stack))),
 
 ## Looks good, let's save as a multilayer feature tif
 writeRaster(features_stack, filename=here("rasters", "multilayer_feature.tif"), options="INTERLEAVE=BAND", overwrite=TRUE)
-
 ```
 

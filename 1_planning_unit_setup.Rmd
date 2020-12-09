@@ -64,7 +64,7 @@ writeRaster(mz_rast_id, here('rasters/mz_id.tif'), overwrite = TRUE)
 ### Also need to set up rast id with higher resolution of 1000 m to use when we raterize some of our conservation feature layers that are at a finer resolution like coral and mangroves
 
 ## Create raster with res=1000
-mz_rast_id_100 <- raster::raster(x=mz_ext, crs=crs(mz_eez_sf), res=1000) 
+mz_rast_id_100 <- raster::raster(x=extent(mz_rast_id), crs=crs(mz_eez_sf), res=100) 
 
 ## Assign cell values
 values(mz_rast_id_100) <- 1:ncell(mz_rast_id_100)
@@ -85,7 +85,7 @@ writeRaster(mz_rast_100, here('rasters/mz_id_100.tif'), overwrite = TRUE)
 ```{r}
 ## Grab protected area shapefile from computer
 exist_pa_path <- 'G:/group_project/Data/Existing_mpas'
-pa_shape <- list.files(exist_mpa_path, full.names = TRUE)
+pa_shape <- list.files(exist_pa_path, full.names = TRUE)
 
 ## Read in the shapefile as a simple feature
 pa_sf <- sf::read_sf(pa_shape[6]) 
@@ -119,13 +119,17 @@ writeRaster(mpa_rast, here('rasters/mpa.tif'), overwrite = TRUE)
 ## Step 3 Load in oil
 ```{r}
 ## Read in oil tif from local computer as a raster
-oil_raster <- raster(here('G:/group_project/Data/Oil_rigs/oil_rig_2013_halpern_et_al_2015_clipped.tif'))
+oil_tif <- 'G:/group_project/Data/Oil_rigs/oil_rig_2013_halpern_et_al_2015_clipped.tif'
+
+#Create raster
+oil_rast <- raster(oil_tif)
 
 ## Reproject the oil raster to match the Moz EEZ raster
 oil_reproj <- raster::projectRaster(oil_rast, mz_rast_id, 
                                             res = 10000,
                                             method = 'ngb',
                                             crs = crs(mz_rast_id))
+
 ## Plot to see what it looks like
 plot(oil_reproj)
 
