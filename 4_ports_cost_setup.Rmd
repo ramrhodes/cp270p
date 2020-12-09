@@ -1,0 +1,69 @@
+---
+title: "Proximity to Ports Cost Layer"
+output: html_document
+---
+## In this R markdown we will create the second cost layer - proximity to ports
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# load libraries
+library(raster)
+library(tidyverse)
+library(here)
+library(sf)
+library(fasterize)
+```
+
+## First lets make a ports raster
+```{r}
+## Grab oorts shapefile from local computer 
+ports_path <- 'G:/group_project/data/moz_ports/moz_ports'
+ports_shape <- list.files(ports_path, full.names = TRUE)
+
+## Read in the shapefile as a simple features and check the class
+ports_sf <- sf::read_sf(ports_shape[6])
+
+## Read in the Moz raster from the rasters folder int he repo
+mz_raster <- raster(here("rasters/mz_id.tif"))
+
+## check crs of ports and make sure it matches the mz rast
+st_crs(mz_raster)
+st_crs(ports_sf)
+
+## Whoop looks like it is in generic lat-long, 4326 so we need to transform it to the Mozambique CRS
+ports_sf <- ports_sf %>%
+  st_transform(crs = st_crs(mz_rast_id))
+
+ports_sp <- as(ports_sf, 'Spatial')
+
+## Double check the class and crs
+class(ports_sp)
+crs(ports_sp)
+
+## Looks good lets create a raster
+ports_rast <- raster::rasterize(ports_sp, mz_rast_id, field = 'OBJECTID_1')
+
+## Plot to make sure it looks good
+plot(ports_rast)
+```
+
+## Great, now we have a ports raster - lets make a distance to ports raster 
+```{r}
+## Take ports raster and creating distance to ports raster 
+port_dist_rast <- raster::distanceFromPoints(mz_rast_id, ports_sp)
+
+## Plot the distance raster to see what it looks like
+plot(port_dist_rast)
+
+# Mask it to be only within the EEZ
+port_dist_rast <- port_dist_rast %>% mask(mz_eez_buffer_sf)
+
+## Plot to make sure it looks good
+plot(port_dist_rast)
+
+# Looks good, save as a tif
+writeRaster(port_dist_rast, here('rasters/port_dist_rast.tif'), overwrite = TRUE)
+
+```
+

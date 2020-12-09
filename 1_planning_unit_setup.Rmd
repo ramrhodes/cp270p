@@ -16,114 +16,126 @@ library(fasterize)
 
 ## STEP 1: Setting up the MZ EEZ File 
 ```{r}
-### Grab Moz EEZ from local computer
+## Grab Moz Exclusive Economic Zone (EEZ) shapefle from local computer
 mz_eez_path <- 'G:/group_project/data/mz_eez'
 mz_shape <- list.files(mz_eez_path, full.names = TRUE) 
 
 mz_eez_sf <- sf::read_sf(mz_shape[6]) 
 
+## check coordinate system
 st_crs(mz_eez_sf)
 
-### Add a buffer of 10 km
+## Add a buffer of 10 km to make sure cells on the outer edges of the EEZ are  included
 mz_eez_buffer_sf <- sf::st_buffer(mz_eez_sf, dist = 10000)
 
-### Create data frame from simple feature to see data more readily
+## Create data frame from simple feature to see data more readily
 mz_eez_df <- mz_eez_sf %>% as.data.frame() %>% select(-geometry)
 
-### Use Moz EEZ to set extent
+## Use Moz EEZ to set extent for future rasters
 mz_ext <- raster::extent(mz_eez_buffer_sf)
 ```
 
 
 ```{r}
-## Create raster with cell ids and clip to MZ EEZ
+## Create raster with cell ids and clip to MZ EEZ raster
 mz_rast_id <- raster::raster(x=mz_ext, crs=crs(mz_eez_sf), res=10000) 
 
+## Assign cell values
 values(mz_rast_id) <- 1:ncell(mz_rast_id)
 
-## Write raster for raster extent
+## Write raster for to use as a template for all other rasters
 writeRaster(mz_rast_id, here('rasters/mz_eez.tif'), overwrite = TRUE)
 
+## Mask it to only incldue cells within the EEZ and assign NA's everywhere else
 mz_rast_id <- mask(mz_rast_id, mz_eez_buffer_sf)
 
+## Plot to make sure it looks good
 plot(mz_rast_id)
- 
+
+## Create data frame to check it out
 mz_rast_id_df <- rasterToPoints(mz_rast_id) %>% as.data.frame()
 
-## Write raster
+## Looks good! Let's save the raster as a tif
 writeRaster(mz_rast_id, here('rasters/mz_id.tif'), overwrite = TRUE)
 ```
 
 
 ```{r}
-## Also need to set up rast id with higher resolution for some of our conservation feature layers like mangroves
+### Also need to set up rast id with higher resolution of 1000 m to use when we raterize some of our conservation feature layers that are at a finer resolution like coral and mangroves
 
-mz_rast_id_100 <- raster::raster(x=mz_ext, crs=crs(mz_eez_sf), res=10000) 
+## Create raster with res=1000
+mz_rast_id_100 <- raster::raster(x=mz_ext, crs=crs(mz_eez_sf), res=1000) 
 
+## Assign cell values
 values(mz_rast_id_100) <- 1:ncell(mz_rast_id_100)
 
+## Mask to Moz EEZ
 mz_rast_100 <- mask(mz_rast_id_100, mz_eez_buffer_sf)
 
+## plot and create data frame to validate it looks good
 plot(mz_rast_100)
- 
 mz_rast_id_df <- rasterToPoints(mz_rast_100) %>% as.data.frame()
 
-## Write raster
+## Looks good! Lets save it as a tiff 
 writeRaster(mz_rast_100, here('rasters/mz_id_100.tif'), overwrite = TRUE)
 ```
 
 
 ## STEP 2: Setting up existing marine protected areas
 ```{r}
-exist_mpa_path <- 'G:/group_project/Data/Existing_mpas'
-mpa_shape <- list.files(exist_mpa_path, full.names = TRUE)
+## Grab protected area shapefile from computer
+exist_pa_path <- 'G:/group_project/Data/Existing_mpas'
+pa_shape <- list.files(exist_mpa_path, full.names = TRUE)
 
-mpa_sf <- sf::read_sf(mpa_shape[6]) 
+## Read in the shapefile as a simple feature
+pa_sf <- sf::read_sf(pa_shape[6]) 
 
-## Check the CRS of the mpa sf
-st_crs(mpa_sf)
+## Check the CRS of the simple feature to make sure it matches the Mozambique Raster 
+st_crs(pa_sf)
 
-pa_rast <- fasterize::fasterize(mpa_sf, mz_rast_id)
+## CRS matches so lets make a raster using the mz_rast_id to set the extent
+pa_rast <- fasterize::fasterize(pa_sf, mz_rast_id)
 
+## Double check the CRS again 
 crs(pa_rast)
 
+## Plot to make sure it looks good, note this shapefile includes all terrestrial protected areas as well so we need to clip it to just include those in the water (the EEZ)
 plot(pa_rast)
 
-## Check the CRS of the mpa sf
-st_crs(mz_eez_buffer_sf)
-
+## Mask the rater to the EEZ 
 mpa_rast <- mask(pa_rast, mz_eez_sf) 
-crs(mpa_rast)
 
+## Double check CRS of new raster & plot to make sure it looks good
+crs(mpa_rast)
 plot(mpa_rast)
 
-# Write as tif
+## Looks good! Save as a tif file
 writeRaster(mpa_rast, here('rasters/mpa.tif'), overwrite = TRUE)
 
 
 ```
+
+
 ## Step 3 Load in oil
-
 ```{r}
-oil_tif <- 'G:/group_project/Data/Oil_rigs/oil_rig_2013_halpern_et_al_2015_clipped.tif'
+## Read in oil tif from local computer as a raster
+oil_raster <- raster(here('G:/group_project/Data/Oil_rigs/oil_rig_2013_halpern_et_al_2015_clipped.tif'))
 
-#oil to raster
-oil_rast <- raster(oil_tif)
-
-# reproject 
+## Reproject the oil raster to match the Moz EEZ raster
 oil_reproj <- raster::projectRaster(oil_rast, mz_rast_id, 
                                             res = 10000,
                                             method = 'ngb',
                                             crs = crs(mz_rast_id))
-# plot to see what it looks like
+## Plot to see what it looks like
 plot(oil_reproj)
 
-# mask to jsut the EEZ
+## There are terrestrial oil projects included in this file so we will need to again maks it to the MZ EEZ
 oil_rast <- mask(oil_reproj, mz_eez_sf) 
 
+## Plot to make sure it looks good
 plot(oil_rast)
 
-# Write as tif
+## Looks good! Save it as a tif
 writeRaster(oil_rast, here('rasters/oil.tif'), overwrite = TRUE)
 ```
 

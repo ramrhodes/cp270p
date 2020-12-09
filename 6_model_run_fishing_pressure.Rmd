@@ -1,0 +1,163 @@
+---
+title: "Model runs using artisinal fishing pressure as cost"
+output: html_document
+---
+
+## Now lets to do our next set of runs using artisinal fishing pressure as a cost
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# Load packages
+library(prioritizr)
+library(here)
+library(tidyverse)
+
+```
+
+## Again, we must assign planning unit, cost, and conservation features
+
+```{r}
+## Make sure you have already run script 5 - this will load the PU and Conservation Features in your local environment
+
+## Now we need to load a new cost layer
+## Read in  artisanal fisheries raster from tif file
+fishing_raster <- raster(here("rasters", "fishing.tif"))
+
+## Create a data frame to check values
+fishing_df <- as.data.frame(fishing_raster)
+
+## Let's scale all values 0-1 by dividing by max value using log-transformed +1 fishing values (+1 so that zero values are transformed to zero not NA)
+fishing<- log(fishing_raster+1)/cellStats(log(fishing_raster+1), max)
+
+## Create another data frame to make sure it looks good
+fishing_df_scaled <- as.data.frame(fishing)
+
+## Plot to make sure it looks good
+plot(fishing)
+
+## we are ready to assign cost
+cost <- fishing
+```
+
+
+## Now it's time to start building the problem or simulations for these runs using similar parameters from script 5
+
+# SCENARIO 1: Baseline - 20% target, Boundary Penalty = 0 
+```{r}
+### OBJECTIVE: Minimize fishing pressure while meeting 20% representation targets, locking in MPAs, locking out oil rigs, and a boundary penalty of 0
+
+## Define the problem with the cost, conservation features, targets, locked in and locked out constraints using the minimum set objective
+prob <- problem(cost, features = features_stack) %>%
+  add_min_set_objective() %>%
+  add_relative_targets(0.2) %>%
+  add_locked_in_constraints(mpa_raster) %>%
+  add_locked_out_constraints(oil_raster) %>%
+  add_gurobi_solver(gap = 0.1, time_limit = 1200)
+  
+## Solve problem
+sprob<- solve(prob) 
+
+## Plot the solution to see what it looks like
+plot(sprob,  main ="Baseline: Fishing Pressure - 20% Target")
+
+```
+
+
+# SCENARIO 2: Boundary Penalty = 0.5
+```{r}
+### Now lets try setting a boundary length of 0.5
+### OBJECTIVE: Minimize fishing pressure while meeting 20% representation targets, locking in MPAs, locking out oil rigs, and a boundary penalty of 0.5
+
+prob_blm <- problem(cost_area, features = features_stack) %>%
+  add_min_set_objective() %>%
+  add_relative_targets(0.2) %>%
+  add_locked_in_constraints(mpa_raster) %>%
+  add_locked_out_constraints(oil_raster) %>%
+  add_boundary_penalties(penalty=0.5) %>%
+  add_gurobi_solver(gap = 0.1, time_limit = 1200)
+
+## Print the problem to verify it is as expected   
+print(prob__blm)
+
+## Solve problem
+sprob_blm <- solve(prob_blm)
+
+## Plot the solution to see what it looks like
+plot(sprob_blm,  main = c("BLM = 0.5"))
+```
+
+
+# SCENARIO 3: No locked in or locked out constraints
+```{r}
+## SENSITIVTY ANALSYSIS TEST: Now lets run a sensitivity analysis with nothing locked in or out
+### OBJECTIVE: Minimize fishing pressure while meeting 20% representation targets, without locking in MPAs, locking out oil rigs, and a boundary penalty of 0
+
+## Establish the problem
+prob_no_mpas <- problem(cost_area, features = features_stack) %>%
+  add_min_set_objective() %>%
+  add_relative_targets(0.2) %>%
+  add_gurobi_solver(gap = 0.1, time_limit = 1200)
+
+print(prob_no_mpas)
+
+#solve problem
+sprob_no_mpas <- solve(prob_no_mpas)
+
+plot(sprob_no_mpas,  main = c("Fishing Pressure - no MPAs"))
+```
+
+# SCENARIO 4: 10% Targets
+```{r}
+## SENSITIVTY ANALSYSIS TEST: Now lets run a sensitivity analysis with 10% targets
+### OBJECTIVE: Minimize area while meeting 10% representation targets, without locking in MPAs, locking out oil rigs, and a boundary penalty of 0
+
+## Establish the problem
+prob_10<- problem(cost, features = features_stack) %>%
+  add_min_set_objective() %>%
+  add_relative_targets(0.1) %>%
+  add_locked_in_constraints(mpa_raster) %>%
+  add_locked_out_constraints(oil_raster) %>%
+  add_gurobi_solver(gap = 0.1, time_limit = 1200)
+
+## Solve the problem
+sprob_10<- solve(prob_10)
+
+
+## Plot the problem to see results
+plot(sprob_10,  main ="Fishing Pressure - 50% Target w MPAs")
+```
+
+# SCENARIO 5: 50% Targets
+```{r}
+## SENSITIVTY ANALSYSIS TEST: Now lets run a sensitivity analysis with 50% targets
+### OBJECTIVE: Minimize area while meeting 50% representation targets, without locking in MPAs, locking out oil rigs, and a boundary penatly of 0
+
+## Establish the problem
+prob_50<- problem(cost, features = features_stack) %>%
+  add_min_set_objective() %>%
+  add_relative_targets(0.5) %>%
+  add_locked_in_constraints(mpa_raster) %>%
+  add_locked_out_constraints(oil_raster) %>%
+  add_gurobi_solver(gap = 0.1, time_limit = 1200)
+
+## Solve the problem
+sprob_50<- solve(prob_50)
+
+## Plot to see results
+plot(sprob_50,  main ="Fishing Pressure - 50% Target w MPAs")
+
+```
+
+## Now lets plot results next to each other to compare
+```{r}
+# Now lets make a results graph comparing the different targets 10, 20 and 50
+plotstack <- stack(sprob_10, sprob, sprob_50)
+
+tm_shape(plotstack)+
+tm_raster(palette = c("#c6c5c5", "#409a00"), n=2, legend.show = FALSE) +
+  tm_layout(title = c("(a)", "(b)", "(c)"))
+
+tmap_save(filename = "outputs/fishing_varying_targets.png")
+
+```
+
