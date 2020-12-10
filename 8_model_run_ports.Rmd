@@ -224,9 +224,9 @@ plot(sprob_ports_nospear,  main ="Distance to Ports - 20% Target, without spearn
 
 ## Now lets plot 10%, 20% and 50% target results next to each other to compare
 ```{r}
-plotstack <- stack(sprob_ports_10, sprob_ports, sprob_ports_50)
+plotstack_targets <- stack(sprob_ports_10, sprob_ports, sprob_ports_50)
 
-tm_shape(plotstack)+
+tm_shape(plotstack_targets)+
 tm_raster(palette = c("#c6c5c5", "#409a00"), n=2, legend.show = FALSE) +
   tm_layout(title = c("(a)", "(b)", "(c)"))
 
@@ -236,9 +236,9 @@ tmap_save(filename = "outputs/ports_varying_targets.png")
 
 ## Now let's plot boundary penalties, 0.5, 1 and 10 results next to each other to compare
 ```{r}
-plotstack <- stack(sprob_ports_10, sprob_ports, sprob_ports_50)
+plotstack_port_blm <- stack(sprob_ports_blm, sprob_ports_blm_1, sprob_ports_blm_10)
 
-tm_shape(plotstack)+
+tm_shape(plotstack_port_blm)+
 tm_raster(palette = c("#c6c5c5", "#409a00"), n=2, legend.show = FALSE) +
   tm_layout(title = c("(a)", "(b)", "(c)"))
 
@@ -246,9 +246,10 @@ tmap_save(filename = "outputs/ports_varying_targets.png")
 
 ```
 
-## Now lets plot baseline restuls from all three scenarios to compare
+## Now lets plot baseline restuls of 20% from all three scenarios to compare
 ```{r}
-plotstack <- stack(sprob_area, sprob, sprob_ports)
+
+plotstack_comp <- stack(sprob_area, sprob_fish, sprob_ports)
 
 tm_shape(plotstack)+
 tm_raster(palette = c("#c6c5c5", "#409a00"), n=2, legend.show = FALSE) +
@@ -257,4 +258,16 @@ tm_raster(palette = c("#c6c5c5", "#409a00"), n=2, legend.show = FALSE) +
 tmap_save(filename = "outputs/comparison_20.png")
 ```
 
+# Now let's plot the baseline results 20% from all three scenarios at BLMs = 0.5
+```{r}
+
+plotstack_all_blm <- stack(sprob_area_blm, sprob_fish_blm, sprob_ports_blm)
+
+tm_shape(plotstack_all_blm)+
+tm_raster(palette = c("#c6c5c5", "#409a00"), n=2, legend.show = FALSE) +
+  tm_layout(title = c("(a)", "(b)", "(c)"))
+
+tmap_save(filename = "outputs/comparison_20_blm.png")
+
+```
 

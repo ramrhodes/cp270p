@@ -238,3 +238,14 @@ tmap_save(filename = "outputs/fishing_varying_targets.png")
 
 ```
 
+## Now let's plot boundary penalties, 0.5, 1 and 10 results next to each other to compare
+```{r}
+plotstack_fish_blm <- stack(sprob_fish_blm, sprob_fish_blm_1, sprob_fish_blm_10)
+
+tm_shape(plotstack_fish_blm)+
+tm_raster(palette = c("#c6c5c5", "#409a00"), n=2, legend.show = FALSE) +
+  tm_layout(title = c("(a)", "(b)", "(c)"))
+
+tmap_save(filename = "outputs/fish_blms.png")
+
+```

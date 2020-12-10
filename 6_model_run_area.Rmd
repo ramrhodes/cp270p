@@ -270,4 +270,16 @@ tmap_save(filename = "outputs/varying_targets.png")
 
 ```
 
+## Now let's plot boundary penalties, 0.5, 1 and 10 results next to each other to compare
+```{r}
+
+plotstack_area_blm <- stack(sprob_area_blm, sprob_area_blm_1, sprob_area_blm_10)
+
+tm_shape(plotstack_area_blm)+
+tm_raster(palette = c("#c6c5c5", "#409a00"), n=2, legend.show = FALSE) +
+  tm_layout(title = c("(a)", "(b)", "(c)"))
+
+tmap_save(filename = "outputs/area_blms.png")
+
+```
 
