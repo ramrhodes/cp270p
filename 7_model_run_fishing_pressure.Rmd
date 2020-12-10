@@ -17,7 +17,7 @@ library(tidyverse)
 ## Again, we must assign planning unit, cost, and conservation features
 
 ```{r}
-## Make sure you have already run script 5 - this will load the PU and Conservation Features in your local environment
+## Make sure you have already run script 6 - this will load the PU and Conservation Features in your local environment
 
 ## Now we need to load a new cost layer
 ## Read in  artisanal fisheries raster from tif file
