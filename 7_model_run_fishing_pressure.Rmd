@@ -36,7 +36,7 @@ fishing_df_scaled <- as.data.frame(fishing)
 plot(fishing)
 
 ## we are ready to assign cost
-cost <- fishing
+cost_fish <- fishing
 ```
 
 
@@ -47,7 +47,7 @@ cost <- fishing
 ### OBJECTIVE: Minimize fishing pressure while meeting 20% representation targets, locking in MPAs, locking out oil rigs, and a boundary penalty of 0
 
 ## Define the problem with the cost, conservation features, targets, locked in and locked out constraints using the minimum set objective
-prob <- problem(cost, features = features_stack) %>%
+prob_fish <- problem(cost_fish, features = features_stack) %>%
   add_min_set_objective() %>%
   add_relative_targets(0.2) %>%
   add_locked_in_constraints(mpa_raster) %>%
@@ -55,20 +55,22 @@ prob <- problem(cost, features = features_stack) %>%
   add_gurobi_solver(gap = 0.1, time_limit = 1200)
   
 ## Solve problem
-sprob<- solve(prob) 
+sprob_fish<- solve(prob_fish) 
 
 ## Plot the solution to see what it looks like
-plot(sprob,  main ="Baseline: Fishing Pressure - 20% Target")
+plot(sprob_fish,  main ="Baseline: Fishing Pressure - 20% Target")
 
 ```
 
 
-# SCENARIO 2: Boundary Penalty = 0.5
+# SCENARIO 2: TEST BOUNDARIES
+
+# Boundary Penalty = 0.5
 ```{r}
 ### Now lets try setting a boundary length of 0.5
 ### OBJECTIVE: Minimize fishing pressure while meeting 20% representation targets, locking in MPAs, locking out oil rigs, and a boundary penalty of 0.5
 
-prob_blm <- problem(cost_area, features = features_stack) %>%
+prob_fish_blm <- problem(cost_fish, features = features_stack) %>%
   add_min_set_objective() %>%
   add_relative_targets(0.2) %>%
   add_locked_in_constraints(mpa_raster) %>%
@@ -77,15 +79,62 @@ prob_blm <- problem(cost_area, features = features_stack) %>%
   add_gurobi_solver(gap = 0.1, time_limit = 1200)
 
 ## Print the problem to verify it is as expected   
-print(prob__blm)
+print(prob_fish_blm)
 
 ## Solve problem
-sprob_blm <- solve(prob_blm)
+sprob_fish_blm <- solve(prob_blm_fish)
 
 ## Plot the solution to see what it looks like
-plot(sprob_blm,  main = c("BLM = 0.5"))
+plot(sprob_fish_blm,  main = c("BLM = 0.5"))
 ```
 
+# Boundary penalty = 1
+```{r}
+### Now lets try setting a boundary length of 1
+### OBJECTIVE: Minimize area while meeting 20% representation targets, locking in MPAs, locking out oil rigs, and a boundary penatly of 1
+
+prob_fish_blm_1 <- problem(cost_fish, features = features_stack) %>%
+  add_min_set_objective() %>%
+  add_relative_targets(0.2) %>%
+  add_locked_in_constraints(mpa_raster) %>%
+  add_locked_out_constraints(oil_raster) %>%
+  add_boundary_penalties(penalty=1) %>%
+  add_gurobi_solver(gap = 0.1, time_limit = 1200)
+
+## Print the problem to verify it is as expected   
+print(prob_fish_blm_1)
+
+## Solve problem
+sprob_fish_blm_1 <- solve(prob_fish_blm_1)
+
+## Plot the solution to see what it looks like
+plot(sprob_fish_blm_1,  main = c("BLM = 1"))
+
+```
+
+# Boundary penalty = 10
+```{r}
+### Now lets try setting a boundary length of 10
+### OBJECTIVE: Minimize area while meeting 20% representation targets, locking in MPAs, locking out oil rigs, and a boundary penatly of 1
+
+prob_fish_blm_10 <- problem(cost_fish, features = features_stack) %>%
+  add_min_set_objective() %>%
+  add_relative_targets(0.2) %>%
+  add_locked_in_constraints(mpa_raster) %>%
+  add_locked_out_constraints(oil_raster) %>%
+  add_boundary_penalties(penalty=1) %>%
+  add_gurobi_solver(gap = 0.1, time_limit = 1200)
+
+## Print the problem to verify it is as expected   
+print(prob_fish_blm_10)
+
+## Solve problem
+sprob_fish_blm_10 <- solve(prob_fish_blm_10)
+
+## Plot the solution to see what it looks like
+plot(sprob_fish_blm_10,  main = c("BLM = 10"))
+
+```
 
 # SCENARIO 3: No locked in or locked out constraints
 ```{r}
@@ -93,7 +142,7 @@ plot(sprob_blm,  main = c("BLM = 0.5"))
 ### OBJECTIVE: Minimize fishing pressure while meeting 20% representation targets, without locking in MPAs, locking out oil rigs, and a boundary penalty of 0
 
 ## Establish the problem
-prob_no_mpas <- problem(cost_area, features = features_stack) %>%
+prob_no_mpas <- problem(cost_fish, features = features_stack) %>%
   add_min_set_objective() %>%
   add_relative_targets(0.2) %>%
   add_gurobi_solver(gap = 0.1, time_limit = 1200)
@@ -112,7 +161,7 @@ plot(sprob_no_mpas,  main = c("Fishing Pressure - no MPAs"))
 ### OBJECTIVE: Minimize area while meeting 10% representation targets, without locking in MPAs, locking out oil rigs, and a boundary penalty of 0
 
 ## Establish the problem
-prob_10<- problem(cost, features = features_stack) %>%
+prob_10<- problem(cost_fish, features = features_stack) %>%
   add_min_set_objective() %>%
   add_relative_targets(0.1) %>%
   add_locked_in_constraints(mpa_raster) %>%
@@ -133,7 +182,7 @@ plot(sprob_10,  main ="Fishing Pressure - 50% Target w MPAs")
 ### OBJECTIVE: Minimize area while meeting 50% representation targets, without locking in MPAs, locking out oil rigs, and a boundary penatly of 0
 
 ## Establish the problem
-prob_50<- problem(cost, features = features_stack) %>%
+prob_50<- problem(cost_fish, features = features_stack) %>%
   add_min_set_objective() %>%
   add_relative_targets(0.5) %>%
   add_locked_in_constraints(mpa_raster) %>%
@@ -147,6 +196,34 @@ sprob_50<- solve(prob_50)
 plot(sprob_50,  main ="Fishing Pressure - 50% Target w MPAs")
 
 ```
+
+#SCENARIO 6: 20% with Spearnose skate removed (Rostroraja alba) FIS-131821
+
+```{r}
+
+# Conservation Features without spearnose skate
+# Create a raster stack from the multilayer habitat raster and the species distirbution tifs
+features_stack_nospear = stack(here("rasters", "multilayer_feature.tif"), here("rasters", "species", "species_Fis-31568.tif"),  here("rasters", "species", "species_Fis-23898.tif"), here("rasters", "species", "species_Fis-23899.tif"), here("rasters", "species", "species_Fis-23061.tif"), here("rasters", "species", "species_Fis-23064.tif"), here("rasters", "species", "species_Fis-58485.tif"), here("rasters", "species", "species_Fis-29423.tif"), here("rasters", "species", "species_Fis-29388.tif"), here("rasters", "species", "species_Fis-30583.tif"), here("rasters", "species", "species_Fis-23273.tif"), here("rasters", "species", "species_Fis-23274.tif"), here("rasters", "species", "species_Fis-23277.tif"), here("rasters", "species", "species_Fis-8339.tif"), here("rasters", "species", "species_Fis-47352.tif"), here("rasters", "species", "species_Fis-24098.tif"), here("rasters", "species", "species_Fis-163295.tif"), here("rasters", "species", "species_Fis-61508.tif"), here("rasters", "species", "species_Fis-30521.tif"), here("rasters", "species", "species_Fis-32599.tif"), here("rasters", "species", "species_Fis-32975.tif"))
+
+## make a data frame of the raster stack to double check everything looks as expected 
+con_features_df_nospear <- as.data.frame(features_stack_nospear)
+
+# Establish new problem without spearnose skate
+prob_fish_nospear<- problem(cost_fish, features = features_stack_nospear) %>%
+  add_min_set_objective() %>%
+  add_relative_targets(0.2) %>%
+  add_locked_in_constraints(mpa_raster) %>%
+  add_locked_out_constraints(oil_raster) %>%
+  add_gurobi_solver(gap = 0.1, time_limit = 1200)
+
+## Solve the problem
+sprob_fish_nospear <- solve(prob_fish_nospear)
+
+## Plot to see results
+plot(sprob_fish_nospear,  main ="Fishing Pressure - 20% Target, without spearnose skate")
+
+```
+
 
 ## Now lets plot results next to each other to compare
 ```{r}

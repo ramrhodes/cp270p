@@ -1,7 +1,5 @@
 ---
 title: "Model runs using distance to ports  as cost"
-author: "Rachel Rhodes"
-date: "12/3/2020"
 output: html_document
 ---
 
@@ -63,12 +61,14 @@ plot(sprob_ports,  main = c("Baseline: Ports - 20% Targets"))
 
 ```
 
-# SCENARIO 2: Boundary Penalty = 0.5
+# SCENARIO 2: TEST BOUNDARIES
+
+# Boundary Penalty = 0.5
 ```{r}
 ### Now lets try setting a boundary length of 0.5
 ### OBJECTIVE: Minimize distance to ports cost  while meeting 20% representation targets, locking in MPAs, locking out oil rigs, and a boundary penalty of 0.5
 
-prob_ports_blm <- problem(cost_area, features = features_stack) %>%
+prob_ports_blm <- problem(cost_ports, features = features_stack) %>%
   add_min_set_objective() %>%
   add_relative_targets(0.2) %>%
   add_locked_in_constraints(mpa_raster) %>%
@@ -86,12 +86,60 @@ sprob_ports_blm <- solve(prob_ports_blm )
 plot(sprob_ports_blm,  main = c("Ports: BLM = 0.5"))
 ```
 
+# Boundary penalty = 1
+```{r}
+### Now lets try setting a boundary length of 1
+### OBJECTIVE: Minimize area while meeting 20% representation targets, locking in MPAs, locking out oil rigs, and a boundary penatly of 1
+
+prob_ports_blm_1 <- problem(cost_ports, features = features_stack) %>%
+  add_min_set_objective() %>%
+  add_relative_targets(0.2) %>%
+  add_locked_in_constraints(mpa_raster) %>%
+  add_locked_out_constraints(oil_raster) %>%
+  add_boundary_penalties(penalty=1) %>%
+  add_gurobi_solver(gap = 0.1, time_limit = 1200)
+
+## Print the problem to verify it is as expected   
+print(prob_ports_blm_1)
+
+## Solve problem
+sprob_ports_blm_1 <- solve(prob_ports_blm_1)
+
+## Plot the solution to see what it looks like
+plot(sprob_ports_blm_1,  main = c("BLM = 1"))
+
+```
+
+# Boundary penalty = 10
+```{r}
+### Now lets try setting a boundary length of 10
+### OBJECTIVE: Minimize area while meeting 20% representation targets, locking in MPAs, locking out oil rigs, and a boundary penatly of 1
+
+prob_ports_blm_10 <- problem(cost_ports, features = features_stack) %>%
+  add_min_set_objective() %>%
+  add_relative_targets(0.2) %>%
+  add_locked_in_constraints(mpa_raster) %>%
+  add_locked_out_constraints(oil_raster) %>%
+  add_boundary_penalties(penalty=1) %>%
+  add_gurobi_solver(gap = 0.1, time_limit = 1200)
+
+## Print the problem to verify it is as expected   
+print(prob_ports_blm_10)
+
+## Solve problem
+sprob_ports_blm_10 <- solve(prob_ports_blm_10)
+
+## Plot the solution to see what it looks like
+plot(sprob_ports_blm_10,  main = c("BLM = 10"))
+
+```
+
 # SCENARIO 3: No locked in or locked out constraints
 ```{r}
 ## SENSITIVTY ANALSYSIS TEST: Now lets run a sensitivity analysis with nothing locked in or out
 ### OBJECTIVE: Minimize distance to ports  while meeting 20% representation targets, without locking in MPAs, locking out oil rigs, and a boundary penalty of 0
 
-prob_ports_no_mpas <- problem(cost_area, features = features_stack) %>%
+prob_ports_no_mpas <- problem(cost_ports, features = features_stack) %>%
   add_min_set_objective() %>%
   add_relative_targets(0.2) %>%
   add_gurobi_solver(gap = 0.1, time_limit = 1200)
@@ -146,8 +194,47 @@ plot(sprob_ports_50,  main = c("Ports - 50% Targets"))
 
 ```
 
+#SCENARIO 6: 20% with Spearnose skate removed (Rostroraja alba) FIS-131821
 
-## Now lets plot results next to each other to compare
+```{r}
+
+# Conservation Features without spearnose skate
+# Create a raster stack from the multilayer habitat raster and the species distirbution tifs
+features_stack_nospear = stack(here("rasters", "multilayer_feature.tif"), here("rasters", "species", "species_Fis-31568.tif"),  here("rasters", "species", "species_Fis-23898.tif"), here("rasters", "species", "species_Fis-23899.tif"), here("rasters", "species", "species_Fis-23061.tif"), here("rasters", "species", "species_Fis-23064.tif"), here("rasters", "species", "species_Fis-58485.tif"), here("rasters", "species", "species_Fis-29423.tif"), here("rasters", "species", "species_Fis-29388.tif"), here("rasters", "species", "species_Fis-30583.tif"), here("rasters", "species", "species_Fis-23273.tif"), here("rasters", "species", "species_Fis-23274.tif"), here("rasters", "species", "species_Fis-23277.tif"), here("rasters", "species", "species_Fis-8339.tif"), here("rasters", "species", "species_Fis-47352.tif"), here("rasters", "species", "species_Fis-24098.tif"), here("rasters", "species", "species_Fis-163295.tif"), here("rasters", "species", "species_Fis-61508.tif"), here("rasters", "species", "species_Fis-30521.tif"), here("rasters", "species", "species_Fis-32599.tif"), here("rasters", "species", "species_Fis-32975.tif"))
+
+## make a data frame of the raster stack to double check everything looks as expected 
+con_features_df_nospear <- as.data.frame(features_stack_nospear)
+
+# Establish new problem without spearnose skate
+prob_ports_nospear<- problem(cost_fish, features = features_stack_nospear) %>%
+  add_min_set_objective() %>%
+  add_relative_targets(0.2) %>%
+  add_locked_in_constraints(mpa_raster) %>%
+  add_locked_out_constraints(oil_raster) %>%
+  add_gurobi_solver(gap = 0.1, time_limit = 1200)
+
+## Solve the problem
+sprob_ports_nospear <- solve(prob_ports_nospear)
+
+## Plot to see results
+plot(sprob_ports_nospear,  main ="Distance to Ports - 20% Target, without spearnose skate")
+
+```
+
+
+## Now lets plot 10%, 20% and 50% target results next to each other to compare
+```{r}
+plotstack <- stack(sprob_ports_10, sprob_ports, sprob_ports_50)
+
+tm_shape(plotstack)+
+tm_raster(palette = c("#c6c5c5", "#409a00"), n=2, legend.show = FALSE) +
+  tm_layout(title = c("(a)", "(b)", "(c)"))
+
+tmap_save(filename = "outputs/ports_varying_targets.png")
+
+```
+
+## Now let's plot boundary penalties, 0.5, 1 and 10 results next to each other to compare
 ```{r}
 plotstack <- stack(sprob_ports_10, sprob_ports, sprob_ports_50)
 
