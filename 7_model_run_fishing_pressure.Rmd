@@ -11,6 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(prioritizr)
 library(here)
 library(tidyverse)
+library(tmap)
 
 ```
 
@@ -52,7 +53,7 @@ prob_fish <- problem(cost_fish, features = features_stack) %>%
   add_relative_targets(0.2) %>%
   add_locked_in_constraints(mpa_raster) %>%
   add_locked_out_constraints(oil_raster) %>%
-  add_gurobi_solver(gap = 0.1, time_limit = 1200)
+  add_gurobi_solver(gap = 0.1, time_limit = 2700)
   
 ## Solve problem
 sprob_fish<- solve(prob_fish) 
@@ -60,32 +61,36 @@ sprob_fish<- solve(prob_fish)
 ## Plot the solution to see what it looks like
 plot(sprob_fish,  main ="Baseline: Fishing Pressure - 20% Target")
 
+tm_shape(sprob_fish)+
+tm_raster(palette = c("#c6c5c5", "#409a00"), n=2, legend.show = FALSE) +
+  tm_layout(panel.labels = "Artisanal Fishing", panel.label.bg.color = "steelblue4", panel.label.color = 'white', panel.label.size = 1)
+
 ```
 
 
 # SCENARIO 2: TEST BOUNDARIES
 
-# Boundary Penalty = 0.5
+# Boundary Penalty = 0.1
 ```{r}
-### Now lets try setting a boundary length of 0.5
-### OBJECTIVE: Minimize fishing pressure while meeting 20% representation targets, locking in MPAs, locking out oil rigs, and a boundary penalty of 0.5
+### Now lets try setting a boundary length of 0.1
+### OBJECTIVE: Minimize fishing pressure while meeting 20% representation targets, locking in MPAs, locking out oil rigs, and a boundary penalty of 0.1
 
 prob_fish_blm <- problem(cost_fish, features = features_stack) %>%
   add_min_set_objective() %>%
   add_relative_targets(0.2) %>%
   add_locked_in_constraints(mpa_raster) %>%
   add_locked_out_constraints(oil_raster) %>%
-  add_boundary_penalties(penalty=0.5) %>%
+  add_boundary_penalties(penalty=0.1) %>%
   add_gurobi_solver(gap = 0.1, time_limit = 1200)
 
 ## Print the problem to verify it is as expected   
 print(prob_fish_blm)
 
 ## Solve problem
-sprob_fish_blm <- solve(prob_blm_fish)
+sprob_fish_blm <- solve(prob_fish_blm)
 
 ## Plot the solution to see what it looks like
-plot(sprob_fish_blm,  main = c("BLM = 0.5"))
+plot(sprob_fish_blm,  main = c("BLM = 0.1"))
 ```
 
 # Boundary penalty = 1
@@ -122,7 +127,7 @@ prob_fish_blm_10 <- problem(cost_fish, features = features_stack) %>%
   add_relative_targets(0.2) %>%
   add_locked_in_constraints(mpa_raster) %>%
   add_locked_out_constraints(oil_raster) %>%
-  add_boundary_penalties(penalty=1) %>%
+  add_boundary_penalties(penalty=10) %>%
   add_gurobi_solver(gap = 0.1, time_limit = 1200)
 
 ## Print the problem to verify it is as expected   
@@ -232,20 +237,36 @@ plotstack <- stack(sprob_10, sprob, sprob_50)
 
 tm_shape(plotstack)+
 tm_raster(palette = c("#c6c5c5", "#409a00"), n=2, legend.show = FALSE) +
-  tm_layout(title = c("(a)", "(b)", "(c)"))
+  tm_layout(title = c("(a)", "(b)", "(c)"), panel.labels = c("10%", "20%", "50%"), panel.label.bg.color = "goldenrod3", panel.label.color = 'white', panel.label.size = 1)
 
 tmap_save(filename = "outputs/fishing_varying_targets.png")
 
 ```
 
-## Now let's plot boundary penalties, 0.5, 1 and 10 results next to each other to compare
+## Now let's plot boundary penalties, 0.1, 1 and 10 results next to each other to compare
 ```{r}
 plotstack_fish_blm <- stack(sprob_fish_blm, sprob_fish_blm_1, sprob_fish_blm_10)
 
+
 tm_shape(plotstack_fish_blm)+
-tm_raster(palette = c("#c6c5c5", "#409a00"), n=2, legend.show = FALSE) +
-  tm_layout(title = c("(a)", "(b)", "(c)"))
+  tm_raster(palette = c("#c6c5c5", "#409a00"), n=2, legend.show = FALSE)+
+  tm_layout(title = c("(a)", "(b)", "(c)"), panel.labels = c("Penalty = 0.1", "Penatly = 1", "Penatly = 10"), panel.label.bg.color = "darkcyan", panel.label.color = 'white', panel.label.size = 1)
 
 tmap_save(filename = "outputs/fish_blms.png")
 
 ```
+
+```{r}
+# Now lets make a results graph comparing the MPAS and oil constraints included versues excluded
+plotstack <- stack(sprob_fish, sprob_no_mpas)
+
+tm_shape(plotstack)+
+tm_raster(palette = c("#c6c5c5", "#409a00"), n=2, legend.show = FALSE) +
+  tm_layout(title = c("(a)", "(b)"), panel.labels = c("With Constriants", "Without Constraints"), panel.label.bg.color = "royalblue4", panel.label.color = 'white', panel.label.size = 1)
+
+tmap_save(filename = "outputs/pu_constriants.png")
+```
+
+
+```
+
