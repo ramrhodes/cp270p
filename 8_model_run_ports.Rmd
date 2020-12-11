@@ -252,7 +252,7 @@ tmap_save(filename = "outputs/ports_varying_targets.png")
 
 plotstack_comp <- stack(sprob_area, sprob_fish, sprob_ports)
 
-tm_shape(plotstack)+
+tm_shape(plotstack_comp)+
 tm_raster(palette = c("#c6c5c5", "#409a00"), n=2, legend.show = FALSE)+
   tm_layout(title = c("(a)", "(b)", "(c)"), panel.labels = c("Area", "Artisanal Fishing", "Distance to Ports"), panel.label.bg.color = "lightblue4", panel.label.color = 'white', panel.label.size = 1)
 

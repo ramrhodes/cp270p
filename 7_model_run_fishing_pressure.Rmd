@@ -53,18 +53,13 @@ prob_fish <- problem(cost_fish, features = features_stack) %>%
   add_relative_targets(0.2) %>%
   add_locked_in_constraints(mpa_raster) %>%
   add_locked_out_constraints(oil_raster) %>%
-  add_gurobi_solver(gap = 0.1, time_limit = 2700)
+  add_gurobi_solver(gap = 0.1, time_limit = 1200)
   
 ## Solve problem
 sprob_fish<- solve(prob_fish) 
 
 ## Plot the solution to see what it looks like
 plot(sprob_fish,  main ="Baseline: Fishing Pressure - 20% Target")
-
-tm_shape(sprob_fish)+
-tm_raster(palette = c("#c6c5c5", "#409a00"), n=2, legend.show = FALSE) +
-  tm_layout(panel.labels = "Artisanal Fishing", panel.label.bg.color = "steelblue4", panel.label.color = 'white', panel.label.size = 1)
-
 ```
 
 
