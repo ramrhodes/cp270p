@@ -64,7 +64,7 @@ sprob_fish<- solve(prob_fish)
 ## Plot the solution to see what it looks like
 plot(sprob_fish,  main ="Baseline: Fishing Pressure - 20% Target")
 
-writeRaster(sprob_area, here('outputs/fish_baseline.tif'), overwrite = TRUE)
+writeRaster(sprob_fish, here('outputs/fish_baseline.tif'), overwrite = TRUE)
 
 ```
 
