@@ -60,7 +60,7 @@ sprob_ports <- solve(prob_ports)
 #plot to see results
 plot(sprob_ports,  main = c("Baseline: Ports - 20% Targets"))
 
-writeRaster(sprob_area, here('outputs/ports_baseline.tif'), overwrite = TRUE)
+writeRaster(sprob_ports, here('outputs/ports_baseline.tif'), overwrite = TRUE)
 
 ```
 
