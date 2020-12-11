@@ -2,7 +2,7 @@
 title: "Model runs using area as cost"
 output: html_document
 ---
-## Time to do our first model runs using area as a cost
+### Time to do our first model runs using area as a cost
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -14,8 +14,9 @@ library(tmap)
 
 ```
 
-## First, we must assign planning unit, cost, and conservation features
-# Planning Unit
+### First, we must assign planning unit, cost, and conservation features
+
+## Planning Unit
 ```{r}
 ## Load in the planning unit raster created in Script 1
 pu <- here("rasters", "mz_id.tif")
@@ -26,7 +27,7 @@ print(pu_rast)
 plot(pu_rast)
 ```
 
-# Cost
+## Cost
 ```{r}
 ## Next, we will want to assign area as cost. Since this did not require that much prep work, we will do the prep work directly in this Rmarkdown
 
@@ -47,9 +48,12 @@ plot(area_raster_eez)
 
 ## Assign the area_raster as cost which we will call "cost_area"
 cost_area <- area_raster_eez
+
+# Write wraster
+writeRaster(cost_area, here('rasters/area_cost.tif'), overwrite = TRUE)
 ```
 
-# Conservation Features
+## Conservation Features
 ```{r}
 ## Create a raster stack from the multilayer habitat raster and the species distirbution tifs
 features_stack = stack(here("rasters", "multilayer_feature.tif"), here("rasters", "species", "species_Fis-31568.tif"),  here("rasters", "species", "species_Fis-23898.tif"), here("rasters", "species", "species_Fis-23899.tif"), here("rasters", "species", "species_Fis-23061.tif"), here("rasters", "species", "species_Fis-23064.tif"), here("rasters", "species", "species_Fis-58485.tif"), here("rasters", "species", "species_Fis-29423.tif"), here("rasters", "species", "species_Fis-29388.tif"), here("rasters", "species", "species_Fis-30583.tif"), here("rasters", "species", "species_Fis-23273.tif"), here("rasters", "species", "species_Fis-23274.tif"), here("rasters", "species", "species_Fis-23277.tif"), here("rasters", "species", "species_Fis-8339.tif"), here("rasters", "species", "species_Fis-47352.tif"), here("rasters", "species", "species_Fis-24098.tif"), here("rasters", "species", "species_Fis-163295.tif"), here("rasters", "species", "species_Fis-61508.tif"), here("rasters", "species", "species_Fis-30521.tif"), here("rasters", "species", "species_Fis-32599.tif"), here("rasters", "species", "species_Fis-131821.tif"), here("rasters", "species", "species_Fis-32975.tif"))
@@ -67,9 +71,9 @@ mpa_raster<- raster(here("rasters", "mpa.tif"))
 oil_raster <- raster(here("rasters", "oil.tif")) 
 ```
 
-## Now it's time to start building the problem or simulations in our model
+### Now it's time to start building the problem or simulations in our model
 
-# SCENARIO 1: Baseline - 20% target, Boundary Penalty = 0 
+## SCENARIO 1: Baseline - 20% target, Boundary Penalty = 0 
 ```{r}
 ### OBJECTIVE: Minimize area while meeting 20% representation targets, locking in MPAs, locking out oil rigs, and a boundary penatly of 0
 
@@ -87,21 +91,45 @@ sprob_area <- solve(prob_area)
 ## Plot the solution to see what it looks like
 plot(sprob_area,  main = c("Area- 20% Targets"))
 
+writeRaster(sprob_area, here('outputs/area_baseline.tif'), overwrite = TRUE)
+
 ```
 
-# SCENARIO 2: TEST BOUNDARIES 
+## SCENARIO 2: TEST BOUNDARIES 
 
-# Boundary Penalty = 0.5
+# Boundary Penalty = 0.00001
 ```{r}
-### Now lets try setting a boundary length of 0.5
+### Now lets try setting a boundary length of 0.0001
 ### OBJECTIVE: Minimize area while meeting 20% representation targets, locking in MPAs, locking out oil rigs, and a boundary penatly of 0.5
 
-prob_area_blm_ <- problem(cost_area, features = features_stack) %>%
+prob_area_blm_00001 <- problem(cost_area, features = features_stack) %>%
   add_min_set_objective() %>%
   add_relative_targets(0.2) %>%
   add_locked_in_constraints(mpa_raster) %>%
   add_locked_out_constraints(oil_raster) %>%
-  add_boundary_penalties(penalty=0.5) %>%
+  add_boundary_penalties(penalty=0.00001) %>%
+  add_gurobi_solver(gap = 0.1, time_limit = 1200)
+
+## Solve problem
+sprob_area_blm_00001 <- solve(prob_area_blm_00001)
+
+## Plot the solution to see what it looks like
+plot(sprob_area_blm_00001,  main = c("BLM = 0.00001"))
+
+writeRaster(sprob_area_blm, here('outputs/area_blm_00001.tif'), overwrite = TRUE)
+```
+
+# Boundary Penalty = 0.0001
+```{r}
+### Now lets try setting a boundary length of 0.0001
+### OBJECTIVE: Minimize area while meeting 20% representation targets, locking in MPAs, locking out oil rigs, and a boundary penatly of 0.5
+
+prob_area_blm <- problem(cost_area, features = features_stack) %>%
+  add_min_set_objective() %>%
+  add_relative_targets(0.2) %>%
+  add_locked_in_constraints(mpa_raster) %>%
+  add_locked_out_constraints(oil_raster) %>%
+  add_boundary_penalties(penalty=0.0001) %>%
   add_gurobi_solver(gap = 0.1, time_limit = 1200)
 
 ## Print the problem to verify it is as expected   
@@ -111,13 +139,36 @@ print(prob_area_blm)
 sprob_area_blm <- solve(prob_area_blm)
 
 ## Plot the solution to see what it looks like
-plot(sprob_area_blm,  main = c("BLM = 0.5"))
+plot(sprob_area_blm,  main = c("BLM = 0.0001"))
 
+writeRaster(sprob_area_blm, here('outputs/area_blm_0001.tif'), overwrite = TRUE)
 ```
 
-# Boundary penalty = 1
+# Boundary penalty = 0.001
 ```{r}
 ### Now lets try setting a boundary length of 1
+### OBJECTIVE: Minimize area while meeting 20% representation targets, locking in MPAs, locking out oil rigs, and a boundary penatly of 1
+
+prob_area_blm_001 <- problem(cost_area, features = features_stack) %>%
+  add_min_set_objective() %>%
+  add_relative_targets(0.2) %>%
+  add_locked_in_constraints(mpa_raster) %>%
+  add_locked_out_constraints(oil_raster) %>%
+  add_boundary_penalties(penalty=.001) %>%
+  add_gurobi_solver(gap = 0.1, time_limit = 1200)
+
+## Solve problem
+sprob_area_blm_001 <- solve(prob_area_blm_001)
+
+## Plot the solution to see what it looks like
+plot(sprob_area_blm_001,  main = c("BLM = .001"))
+
+writeRaster(sprob_area_blm_001, here('outputs/area_blm_001.tif'), overwrite = TRUE)
+```
+
+# Boundary Penalty = 1
+```{r}
+### Now lets try setting a boundary length of 10
 ### OBJECTIVE: Minimize area while meeting 20% representation targets, locking in MPAs, locking out oil rigs, and a boundary penatly of 1
 
 prob_area_blm_1 <- problem(cost_area, features = features_stack) %>%
@@ -137,33 +188,12 @@ sprob_area_blm_1 <- solve(prob_area_blm_1)
 ## Plot the solution to see what it looks like
 plot(sprob_area_blm_1,  main = c("BLM = 1"))
 
-```
-
-# Boundary Penalty = 10
-```{r}
-### Now lets try setting a boundary length of 10
-### OBJECTIVE: Minimize area while meeting 20% representation targets, locking in MPAs, locking out oil rigs, and a boundary penatly of 1
-
-prob_area_blm_10 <- problem(cost_area, features = features_stack) %>%
-  add_min_set_objective() %>%
-  add_relative_targets(0.2) %>%
-  add_locked_in_constraints(mpa_raster) %>%
-  add_locked_out_constraints(oil_raster) %>%
-  add_boundary_penalties(penalty=10) %>%
-  add_gurobi_solver(gap = 0.1, time_limit = 1200)
-
-## Print the problem to verify it is as expected   
-print(prob_area_blm_10)
-
-## Solve problem
-sprob_area_blm_10 <- solve(prob_area_blm_10)
-
-## Plot the solution to see what it looks like
-plot(sprob_area_blm_10,  main = c("BLM = 10"))
+writeRaster(sprob_area_blm_1, here('outputs/area_blm_1.tif'), overwrite = TRUE)
 
 ```
 
-# SCENARIO 3: No locked in or locked out constraints
+## SCENARIO 3: No locked in or locked out constraints
+
 ```{r}
 ## SENSITIVTY ANALSYSIS TEST: Now lets run a sensitivity analysis with nothing locked in or out
 ### OBJECTIVE: Minimize area while meeting 20% representation targets, without locking in MPAs, locking out oil rigs, and a boundary penalty of 0
@@ -184,7 +214,9 @@ sprob_area_no_mpas <- solve(prob_area_no_mpas)
 plot(sprob_area_no_mpas,  main = c("Sensitivty Analyis: Min Area with no MPAs"))
 ```
 
-# SCENARIO 4: 10% Targets
+## SCENARIO 4:Sensitivity to Targets
+
+# 10% Targets
 ```{r}
 ## SENSITIVTY ANALSYSIS TEST: Now lets run a sensitivity analysis with 10% targets
 ### OBJECTIVE: Minimize area while meeting 10% representation targets, without locking in MPAs, locking out oil rigs, and a boundary penalty of 0
@@ -204,7 +236,7 @@ plot(sprob_area_10,  main ="10% Targets")
 
 ```
 
-# SCENARIO 5: 50% Targets
+# 50% Targets
 ```{r}
 ## SENSITIVTY ANALSYSIS TEST: Now lets run a sensitivity analysis with 50% targets
 ### OBJECTIVE: Minimize area while meeting 50% representation targets, without locking in MPAs, locking out oil rigs, and a boundary penatly of 0
@@ -224,7 +256,9 @@ sprob_area_50<- solve(prob_area_50)
 plot(sprob_area_50,  main ="Area - 50% Target w MPAs")
 ```
 
-#SCENARIO 6: 20% with Spearnose skate removed (Rostroraja alba) FIS-131821
+## SCENARIO 6: Sensitivity to Spearnose Skate Distribution
+
+# 20% with Spearnose skate removed (Rostroraja alba) FIS-131821
 
 ```{r}
 
@@ -246,11 +280,19 @@ prob_area_nospear<- problem(cost_area, features = features_stack_nospear) %>%
 ## Solve the problem
 sprob_area_nospear <- solve(prob_area_nospear)
 
+# Best objective 6.370000000000e+02, best bound 6.295000000000e+02, gap 1.1774%
+
 ## Plot to see results
 plot(sprob_area_nospear,  main ="Area - 20% Target, without spearnose skate")
 
+writeRaster(sprob_area_nospear, here('outputs/area_spearnose.tif'), overwrite = TRUE)
+
 ```
 
+
+### Now we can make some quick results using tmap
+
+# Graph to compare target sensitivity
 ```{r}
 # Now lets make a restuls graph comparing the different targets 10, 20 and 50
 plotstack <- stack(sprob_area_10, sprob_area, sprob_area_50)
@@ -259,18 +301,18 @@ tm_shape(plotstack)+
 tm_raster(palette = c("#c6c5c5", "#409a00"), n=2, legend.show = FALSE) +
   tm_layout(title = c("(a)", "(b)", "(c)"))
 
-tmap_save(filename = "outputs/varying_targets.png")
+tmap_save(filename = "outputs/area_varying_targets.png")
 
 ```
 
-## Now let's plot boundary penalties, 0.5, 1 and 10 results next to each other to compare
+# Graph to compare boundary penalities
 ```{r}
 
-plotstack_area_blm <- stack(sprob_area_blm, sprob_area_blm_1, sprob_area_blm_10)
+plotstack_area_blm <- stack(sprob_area_blm, sprob_area_blm_0001, sprob_area_blm_001, sprob_area_blm_1)
 
 tm_shape(plotstack_area_blm)+
 tm_raster(palette = c("#c6c5c5", "#409a00"), n=2, legend.show = FALSE) +
-  tm_layout(title = c("(a)", "(b)", "(c)"))
+  tm_layout(title = c("(a)", "(b)", "(c)" ,"(d)"))
 
 tmap_save(filename = "outputs/area_blms.png")
 

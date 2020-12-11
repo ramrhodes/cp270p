@@ -3,7 +3,7 @@ title: "Model runs using artisinal fishing pressure as cost"
 output: html_document
 ---
 
-## Now lets to do our next set of runs using artisinal fishing pressure as a cost
+### Now lets to do our next set of runs using artisinal fishing pressure as a cost
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
@@ -38,12 +38,15 @@ plot(fishing)
 
 ## we are ready to assign cost
 cost_fish <- fishing
+
+# Write wraster
+writeRaster(cost_area, here('rasters/fish_cost.tif'), overwrite = TRUE)
 ```
 
 
-## Now it's time to start building the problem or simulations for these runs using similar parameters from script 5
+### Now it's time to start building the problem or simulations for these runs using similar parameters from script 5
 
-# SCENARIO 1: Baseline - 20% target, Boundary Penalty = 0 
+## SCENARIO 1: Baseline - 20% target, Boundary Penalty = 0 
 ```{r}
 ### OBJECTIVE: Minimize fishing pressure while meeting 20% representation targets, locking in MPAs, locking out oil rigs, and a boundary penalty of 0
 
@@ -60,32 +63,74 @@ sprob_fish<- solve(prob_fish)
 
 ## Plot the solution to see what it looks like
 plot(sprob_fish,  main ="Baseline: Fishing Pressure - 20% Target")
+
+writeRaster(sprob_area, here('outputs/fish_baseline.tif'), overwrite = TRUE)
+
 ```
 
 
-# SCENARIO 2: TEST BOUNDARIES
+# SCENARIO 2: SENSITIVITY BOUNDARIES
 
-# Boundary Penalty = 0.1
+# Boundary Penalty = 0.0001
 ```{r}
-### Now lets try setting a boundary length of 0.1
-### OBJECTIVE: Minimize fishing pressure while meeting 20% representation targets, locking in MPAs, locking out oil rigs, and a boundary penalty of 0.1
+### Now lets try setting a boundary length of 0.0001
+### OBJECTIVE: Minimize fishing pressure while meeting 20% representation targets, locking in MPAs, locking out oil rigs, and a boundary penalty of 0.0001
 
-prob_fish_blm <- problem(cost_fish, features = features_stack) %>%
+prob_fish_blm_0001 <- problem(cost_fish, features = features_stack) %>%
   add_min_set_objective() %>%
   add_relative_targets(0.2) %>%
   add_locked_in_constraints(mpa_raster) %>%
   add_locked_out_constraints(oil_raster) %>%
-  add_boundary_penalties(penalty=0.1) %>%
+  add_boundary_penalties(penalty=0.0001) %>%
   add_gurobi_solver(gap = 0.1, time_limit = 1200)
 
-## Print the problem to verify it is as expected   
-print(prob_fish_blm)
-
 ## Solve problem
-sprob_fish_blm <- solve(prob_fish_blm)
+sprob_fish_blm_0001 <- solve(prob_fish_blm_0001)
 
 ## Plot the solution to see what it looks like
-plot(sprob_fish_blm,  main = c("BLM = 0.1"))
+plot(sprob_fish_blm_0001,  main = c("BLM = 0.0001"))
+
+writeRaster(sprob_fish_blm_0001, here('outputs/fish_blm_0001.tif'), overwrite = TRUE)
+
+#Found heuristic solution: objective 437.7514884
+# Explored 1627 nodes (632174 simplex iterations) in 1200.03 seconds
+#Thread count was 1 (of 8 available processors)
+
+#Solution count 10: 233.352 234.358 235.443 ... 242.268
+
+#Time limit reached
+#Best objective 2.333523694617e+02, best bound 1.759145645280e+02, gap 24.6142%
+```
+
+# Boundary penalty = .001
+```{r}
+### Now lets try setting a boundary length of .001
+### OBJECTIVE: Minimize area while meeting 20% representation targets, locking in MPAs, locking out oil rigs, and a boundary penatly of 1
+
+prob_fish_blm_001 <- problem(cost_fish, features = features_stack) %>%
+  add_min_set_objective() %>%
+  add_relative_targets(0.2) %>%
+  add_locked_in_constraints(mpa_raster) %>%
+  add_locked_out_constraints(oil_raster) %>%
+  add_boundary_penalties(penalty=.001) %>%
+  add_gurobi_solver(gap = 0.1, time_limit = 1200)
+
+## Solve problem
+sprob_fish_blm_001 <- solve(prob_fish_blm_001)
+
+## Plot the solution to see what it looks like
+plot(sprob_fish_blm_001 ,  main = c("BLM = .001"))
+
+writeRaster(sprob_fish_blm_0001, here('outputs/fish_blm_001.tif'), overwrite = TRUE)
+
+#Found heuristic solution: objective 4275.5416714
+# Explored 1361 nodes (596533 simplex iterations) in 1200.01 seconds
+#Thread count was 1 (of 8 available processors)
+
+#Solution count 10: 2049.19 2049.38 2259.68 ... 3070.65
+
+#Time limit reached
+#Best objective 2.049188931272e+03, best bound 1.482067286538e+03, gap 27.6754%
 ```
 
 # Boundary penalty = 1
@@ -101,14 +146,13 @@ prob_fish_blm_1 <- problem(cost_fish, features = features_stack) %>%
   add_boundary_penalties(penalty=1) %>%
   add_gurobi_solver(gap = 0.1, time_limit = 1200)
 
-## Print the problem to verify it is as expected   
-print(prob_fish_blm_1)
-
 ## Solve problem
 sprob_fish_blm_1 <- solve(prob_fish_blm_1)
 
 ## Plot the solution to see what it looks like
 plot(sprob_fish_blm_1,  main = c("BLM = 1"))
+
+writeRaster(sprob_fish_blm_1, here('outputs/fish_blm_1.tif'), overwrite = TRUE)
 
 ```
 
