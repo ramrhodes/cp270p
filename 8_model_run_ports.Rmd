@@ -34,6 +34,8 @@ plot(ports)
 
 ## Assign the new ports raster as costs and call it "costs_ports"
 cost_ports <- ports
+
+writeRaster(cost_ports, here('rasters/ports_cost.tif'), overwrite = TRUE)
 ```
 
 ## Now it's time to start building the problem or simulations for these runs using similar parameters from script 5 & 6
@@ -51,14 +53,14 @@ prob_ports <- problem(cost_ports, features = features_stack) %>%
   add_locked_out_constraints(oil_raster) %>%
   add_gurobi_solver(gap = 0.1, time_limit = 1200)
 
-# print the problem to verify it looks right
-print(prob_ports)
 
 #solve problem
 sprob_ports <- solve(prob_ports)
 
 #plot to see results
 plot(sprob_ports,  main = c("Baseline: Ports - 20% Targets"))
+
+writeRaster(sprob_area, here('outputs/ports_baseline.tif'), overwrite = TRUE)
 
 ```
 

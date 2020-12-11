@@ -40,7 +40,7 @@ plot(fishing)
 cost_fish <- fishing
 
 # Write wraster
-writeRaster(cost_area, here('rasters/fish_cost.tif'), overwrite = TRUE)
+writeRaster(cost_fish, here('rasters/fish_cost.tif'), overwrite = TRUE)
 ```
 
 
