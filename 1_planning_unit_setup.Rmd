@@ -1,5 +1,5 @@
 ---
-title: "Planning_unit_prep"
+title: "Planning Unit Setup"
 output: html_document
 ---
 
@@ -14,12 +14,13 @@ library(here)
 library(fasterize)
 ```
 
-## STEP 1: Setting up the MZ EEZ File 
+### STEP 1: Setting up the MZ EEZ File 
 ```{r}
 ## Grab Moz Exclusive Economic Zone (EEZ) shapefle from local computer
 mz_eez_path <- 'G:/group_project/data/mz_eez'
 mz_shape <- list.files(mz_eez_path, full.names = TRUE) 
 
+## Read in shapefile as simple feature
 mz_eez_sf <- sf::read_sf(mz_shape[6]) 
 
 ## check coordinate system
@@ -35,7 +36,7 @@ mz_eez_df <- mz_eez_sf %>% as.data.frame() %>% select(-geometry)
 mz_ext <- raster::extent(mz_eez_buffer_sf)
 ```
 
-
+## Create MZ raster with Cell IDs
 ```{r}
 ## Create raster with cell ids and clip to MZ EEZ raster
 mz_rast_id <- raster::raster(x=mz_ext, crs=crs(mz_eez_sf), res=10000) 
@@ -60,6 +61,7 @@ writeRaster(mz_rast_id, here('rasters/mz_id.tif'), overwrite = TRUE)
 ```
 
 
+## Create raster with higher res of 1000 m
 ```{r}
 ### Also need to set up rast id with higher resolution of 1000 m to use when we raterize some of our conservation feature layers that are at a finer resolution like coral and mangroves
 
@@ -81,7 +83,7 @@ writeRaster(mz_rast_100, here('rasters/mz_id_100.tif'), overwrite = TRUE)
 ```
 
 
-## STEP 2: Setting up existing marine protected areas
+### STEP 2: Setting up existing marine protected areas
 ```{r}
 ## Grab protected area shapefile from computer
 exist_pa_path <- 'G:/group_project/Data/Existing_mpas'
@@ -112,16 +114,15 @@ plot(mpa_rast)
 ## Looks good! Save as a tif file
 writeRaster(mpa_rast, here('rasters/mpa.tif'), overwrite = TRUE)
 
-
 ```
 
 
-## Step 3 Load in oil
+### Step 3: Set up raster of oil development areas
 ```{r}
 ## Read in oil tif from local computer as a raster
 oil_tif <- 'G:/group_project/Data/Oil_rigs/oil_rig_2013_halpern_et_al_2015_clipped.tif'
 
-#Create raster
+## Create raster
 oil_rast <- raster(oil_tif)
 
 ## Reproject the oil raster to match the Moz EEZ raster

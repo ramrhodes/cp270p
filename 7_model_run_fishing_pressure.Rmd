@@ -4,6 +4,7 @@ output: html_document
 ---
 
 ### Now lets to do our next set of runs using artisinal fishing pressure as a cost
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
@@ -11,6 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(prioritizr)
 library(here)
 library(tidyverse)
+library(gurobi)
 library(tmap)
 
 ```
@@ -180,7 +182,7 @@ plot(sprob_fish_blm_10,  main = c("BLM = 10"))
 
 ```
 
-# SCENARIO 3: No locked in or locked out constraints
+### SCENARIO 3: No locked in or locked out constraints
 ```{r}
 ## SENSITIVTY ANALSYSIS TEST: Now lets run a sensitivity analysis with nothing locked in or out
 ### OBJECTIVE: Minimize fishing pressure while meeting 20% representation targets, without locking in MPAs, locking out oil rigs, and a boundary penalty of 0
@@ -203,7 +205,9 @@ writeRaster(sprob_fish_no_mpas, here('outputs/fish_mpas.tif'), overwrite = TRUE)
 #Best objective 2.121596078794e+01, best bound 2.121129170119e+01, gap #0.0220%
 ```
 
-# SCENARIO 4: 10% Targets
+### SCENARIO 4: Varying Targets
+
+## 10% Targets
 ```{r}
 ## SENSITIVTY ANALSYSIS TEST: Now lets run a sensitivity analysis with 10% targets
 ### OBJECTIVE: Minimize area while meeting 10% representation targets, without locking in MPAs, locking out oil rigs, and a boundary penalty of 0
@@ -227,7 +231,7 @@ writeRaster(sprob_10, here('outputs/fish_10.tif'), overwrite = TRUE)
 
 ```
 
-# SCENARIO 5: 50% Targets
+## 50% Targets
 ```{r}
 ## SENSITIVTY ANALSYSIS TEST: Now lets run a sensitivity analysis with 50% targets
 ### OBJECTIVE: Minimize area while meeting 50% representation targets, without locking in MPAs, locking out oil rigs, and a boundary penatly of 0
@@ -257,7 +261,7 @@ writeRaster(sprob_50, here('outputs/fish_50.tif'), overwrite = TRUE)
 
 ```
 
-#SCENARIO 6: 20% with Spearnose skate removed (Rostroraja alba) FIS-131821
+### OPTIONAL SCENARIO 6: 20% with Spearnose skate removed (Rostroraja alba) FIS-131821
 
 ```{r}
 
@@ -282,11 +286,11 @@ sprob_fish_nospear <- solve(prob_fish_nospear)
 ## Plot to see results
 plot(sprob_fish_nospear,  main ="Fishing Pressure - 20% Target, without spearnose skate")
 
-writeRaster(sprob_ports, here('outputs/no_spearnose.tif'), overwrite = TRUE)
+writeRaster(sprob_fish_nospear, here('outputs/no_spearnose.tif'), overwrite = TRUE)
 ```
 
 
-## Now lets plot results next to each other to compare
+### Now lets plot results next to each other to compare
 ```{r}
 # Now lets make a results graph comparing the different targets 10, 20 and 50
 plotstack <- stack(sprob_10, sprob, sprob_50)
@@ -323,6 +327,4 @@ tm_raster(palette = c("#c6c5c5", "#409a00"), n=2, legend.show = FALSE) +
 tmap_save(filename = "outputs/pu_constriants.png")
 ```
 
-
-```
 

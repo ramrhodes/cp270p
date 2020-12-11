@@ -1,11 +1,12 @@
 ---
-title: "Species"
+title: "Species Distribution Set Up"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
+# load packages
 library(raster)
 library(tidyverse)
 library(sf)
@@ -13,34 +14,35 @@ library(here)
 library(fasterize)
 ```
 
+### Step 1: Load Species Distribution Data from Aquamaps
 ```{r}
-# read in MZ EEZ tif
+## read in MZ EEZ tif
 mz_rast <- raster(here("rasters", "mz_id.tif"))
 
-# read in aquamaps csv file
+## read in aquamaps csv file
 hcaf_df <- read_csv(here("data", "am_hcaf.csv"))
 
-#create an xyz dataframe for the raster::rasterFromXYZ function
+## create an xyz dataframe for the raster::rasterFromXYZ function
 xyz_df <- hcaf_df %>%
   select(x = center_long, y = center_lat, z = loiczid)
 
-# create a raster from the xyz dataframe
+## create a raster from the xyz dataframe
 hcaf_rast <- raster::rasterFromXYZ(xyz_df)
 
-# assign a projection
+## assign a projection
 crs(hcaf_rast) <- '+init=epsg:4326'
 
-# change raster to be projected in the same extent and crs as mz_rast
+## change raster to be projected in the same extent and crs as mz_rast
 hcaf_reproj <- raster::projectRaster(hcaf_rast, 
                                      mz_rast,
                                      res = 10000, 
                                      method = 'ngb',
                                      crs = crs(mz_rast))
 
-# make the hcaf rast match the exten of the mz and maks it
+## make the hcaf rast match the exten of the mz and maks it
 hcaf_mz_rast <- raster::crop(hcaf_reproj, mz_rast) 
 
-# mask to just include the EEZ
+## mask to just include the EEZ
 hcaf_mz_rast <-  mask(hcaf_mz_rast, mz_rast)
 
 plot(hcaf_mz_rast)
@@ -48,13 +50,14 @@ plot(hcaf_mz_rast)
 
 
 ```{r}
-# read in aquamaps data
+## read in aquamaps species meta data
 mz <- read_csv(here("data","moz_spp_native.csv"))
 
-# read in info about species in aquamaps dta
+## read in info about species in aquamaps dta
 mz_info <- read_csv(here("data","moz_spp_info.csv"))
 ```
 
+### Step 2: Filter data to only include focal species
 ```{r}
 #filter using the top 30 species id
 mz_snr_species <- mz %>% 
@@ -82,7 +85,7 @@ mz_snr_species <- mz %>%
                        "Fis-32975"))
 ```
 
-
+### Step 3: Create a Function that clips each species distribution map to MZ EEZ and saves as tiff
 ```{r}
 #create raster function by species id
 create_rast <- function(mz, species_id){
@@ -110,6 +113,9 @@ return('yay it works')
 }
 ```
 
+### Step 4: Create vector of the focal species and use function created in previous step
+
+## Create Vector
 ```{r}
 #creating a vector of the top 30 species to be used in a loop
 species_vec <- c("Fis-31568",
@@ -136,16 +142,13 @@ species_vec <- c("Fis-31568",
                        "Fis-32975")
 ```
 
+
+## Create & Run Loop with vector
 ```{r}
 #creating a loop of this function to get all the rasters at once 
 for (i in seq_along(species_vec)) {
   create_rast(mz, species_vec[i])
 }
-
-```
-```{r}
-species_test <- raster(here("rasters", "species", "species_Fis-131821.tif"))
-plot(species_test)
 
 ```
 

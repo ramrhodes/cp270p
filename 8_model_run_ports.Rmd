@@ -3,7 +3,7 @@ title: "Model runs using distance to ports  as cost"
 output: html_document
 ---
 
-## Now lets to do our next set of runs using distance to ports  as a cost
+### Now lets to do our next set of runs using distance to ports  as a cost
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -38,9 +38,9 @@ cost_ports <- ports
 writeRaster(cost_ports, here('rasters/ports_cost.tif'), overwrite = TRUE)
 ```
 
-## Now it's time to start building the problem or simulations for these runs using similar parameters from script 5 & 6
+### Now it's time to start building the problem or simulations for these runs using similar parameters from script 5 & 6
 
-# SCENARIO 1: Baseline - 20% target, Boundary Penalty = 0 
+## SCENARIO 1: Baseline - 20% target, Boundary Penalty = 0 
 ```{r}
 ### OBJECTIVE: Minimize fishing pressure while meeting 20% representation targets, locking in MPAs, locking out oil rigs, and a boundary penalty of 0
 
@@ -64,7 +64,7 @@ writeRaster(sprob_ports, here('outputs/ports_baseline.tif'), overwrite = TRUE)
 
 ```
 
-# SCENARIO 2: TEST BOUNDARIES
+## SCENARIO 2: TEST BOUNDARIES
 
 # Boundary Penalty = 0.5
 ```{r}
@@ -89,7 +89,7 @@ sprob_ports_blm <- solve(prob_ports_blm )
 plot(sprob_ports_blm,  main = c("Ports: BLM = 0.5"))
 ```
 
-# Boundary penalty = 1
+## Boundary penalty = 1
 ```{r}
 ### Now lets try setting a boundary length of 1
 ### OBJECTIVE: Minimize area while meeting 20% representation targets, locking in MPAs, locking out oil rigs, and a boundary penatly of 1
@@ -113,7 +113,7 @@ plot(sprob_ports_blm_1,  main = c("BLM = 1"))
 
 ```
 
-# Boundary penalty = 10
+## Boundary penalty = 10
 ```{r}
 ### Now lets try setting a boundary length of 10
 ### OBJECTIVE: Minimize area while meeting 20% representation targets, locking in MPAs, locking out oil rigs, and a boundary penatly of 1
@@ -137,7 +137,7 @@ plot(sprob_ports_blm_10,  main = c("BLM = 10"))
 
 ```
 
-# SCENARIO 3: No locked in or locked out constraints
+### SCENARIO 3: No locked in or locked out constraints
 ```{r}
 ## SENSITIVTY ANALSYSIS TEST: Now lets run a sensitivity analysis with nothing locked in or out
 ### OBJECTIVE: Minimize distance to ports  while meeting 20% representation targets, without locking in MPAs, locking out oil rigs, and a boundary penalty of 0
@@ -154,12 +154,12 @@ sprob_ports_no_mpas <- solve(prob_ports_no_mpas)
 
 plot(sprob_ports_no_mpas,  main = c("Fishing Pressure - no MPAs"))
 
+## Now we can compare this result to the baseline result found in Scenario 1
 ```
 
-# SCENARIO 4: 10% Targets
+### SCENARIO 4: Varying Targets
 ```{r}
 ## SENSITIVTY ANALSYSIS TEST: Now lets run a sensitivity analysis with 10% targets
-
 ### OBJECTIVE: Minimize area while meeting 10% representation targets, without locking in MPAs, locking out oil rigs, and a boundary penalty of 0
 
 ports_10 <- problem(cost_ports, features = features_stack) %>%
@@ -179,7 +179,6 @@ plot(sprob_ports_10,  main = c("Ports - 10% Targets"))
 # SCENARIO 5: 50% Targets
 ```{r}
 ## SENSITIVTY ANALSYSIS TEST: Now lets run a sensitivity analysis with 50% targets
-
 ### OBJECTIVE: Minimize area while meeting 50% representation targets, without locking in MPAs, locking out oil rigs, and a boundary penatly of 0
 
 ports_50 <- problem(cost_ports, features = features_stack) %>%
@@ -197,7 +196,7 @@ plot(sprob_ports_50,  main = c("Ports - 50% Targets"))
 
 ```
 
-#SCENARIO 6: 20% with Spearnose skate removed (Rostroraja alba) FIS-131821
+### OPTIONAL - SCENARIO 6: 20% with Spearnose skate removed (Rostroraja alba) FIS-131821
 
 ```{r}
 
@@ -225,7 +224,7 @@ plot(sprob_ports_nospear,  main ="Distance to Ports - 20% Target, without spearn
 ```
 
 
-## Now lets plot 10%, 20% and 50% target results next to each other to compare
+### Now lets plot 10%, 20% and 50% target results next to each other to compare
 ```{r}
 plotstack_targets <- stack(sprob_ports_10, sprob_ports, sprob_ports_50)
 

@@ -16,7 +16,7 @@ library(tmap)
 
 ### First, we must assign planning unit, cost, and conservation features
 
-## Planning Unit
+## Load Planning Unit
 ```{r}
 ## Load in the planning unit raster created in Script 1
 pu <- here("rasters", "mz_id.tif")
@@ -256,7 +256,7 @@ sprob_area_50<- solve(prob_area_50)
 plot(sprob_area_50,  main ="Area - 50% Target w MPAs")
 ```
 
-## SCENARIO 6: Sensitivity to Spearnose Skate Distribution
+## OPTIONAL SCENARIO 6: Sensitivity to Spearnose Skate Distribution
 
 # 20% with Spearnose skate removed (Rostroraja alba) FIS-131821
 
@@ -307,7 +307,6 @@ tmap_save(filename = "outputs/area_varying_targets.png")
 
 # Graph to compare boundary penalities
 ```{r}
-
 plotstack_area_blm <- stack(sprob_area_blm, sprob_area_blm_0001, sprob_area_blm_001, sprob_area_blm_1)
 
 tm_shape(plotstack_area_blm)+

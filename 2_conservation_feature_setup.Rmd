@@ -1,5 +1,5 @@
 ---
-title: "conservation features"
+title: "Conservation Features Set Up"
 output: html_document
 ---
 
@@ -15,7 +15,7 @@ library(fasterize)
 library(janitor)
 ```
 
-## STEP 1: Let's start with Coral
+### STEP 1: Create raster of Coral
 ```{r}
 ## Bring in MZ raster that was created in Script 1 - 100 m resoltuion
 mz_rast_100 <- raster(here("rasters/mz_id_100.tif"))
@@ -53,13 +53,13 @@ coral_rast <- mask(coral_agg_percent, mz_eez_buffer_sf)
 
 plot(coral_rast)
 
-# save as raster
+## Save as raster
 writeRaster(coral_rast, here('rasters/coral.tif'), overwrite = TRUE)
 
 ```
 
 
-## STEP 2: Let's bring in mangroves
+### STEP 2: Mangroves
 ```{r}
 ## Path to get data on G shared drive at Bren
 mangrove_path <- 'G:/group_project/Data/Habitats/mangroves'
@@ -100,7 +100,7 @@ writeRaster(mangrove_agg_percent, here('rasters/mangrove.tif'), overwrite = TRUE
 
 ```
 
-## Now lets do seamounts
+### Seamounts
 ```{r}
 ## Bring in MZ raster that was created in Script 1 with resolution 10000
 mz_rast <- raster(here("rasters/mz_id.tif"))
@@ -127,7 +127,7 @@ plot(seamount_raster)
 writeRaster(seamount_raster, here('rasters/seamount.tif'), overwrite = TRUE)
 ```
 
-## Now lets do knolls
+### Knolls
 ```{r}
 ## Grab knolls shapefile from the local computer
 knolls_path <- 'G:/group_project/Data/Habitats/knolls'
@@ -151,7 +151,7 @@ writeRaster(knolls_raster, here('rasters/knolls.tif'), overwrite = TRUE)
 
 ```
 
-## Now lets do seagrass
+### Seagrass
 ```{r}
 ## Grab seagrass shapefile from the local computer
 seagrass_path <- 'G:/group_project/Data/Habitats/seagrass'
@@ -175,7 +175,7 @@ plot(seagrass_raster)
 writeRaster(seagrass_raster, here('rasters/seagrass.tif'), overwrite = TRUE)
 ```
 
-## Now its time to create a conservation feature raster stack and save as a tif
+### Now its time to create a conservation feature raster stack and save as a tif
 ```{r}
 ## Create a features stack from all five critical habitats created in the previous steps
 features_stack <- stack(coral_rast, mangrove_rast, seagrass_raster, seamount_raster, knolls_raster)
