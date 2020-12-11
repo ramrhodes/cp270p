@@ -282,6 +282,7 @@ sprob_fish_nospear <- solve(prob_fish_nospear)
 ## Plot to see results
 plot(sprob_fish_nospear,  main ="Fishing Pressure - 20% Target, without spearnose skate")
 
+writeRaster(sprob_ports, here('outputs/no_spearnose.tif'), overwrite = TRUE)
 ```
 
 
