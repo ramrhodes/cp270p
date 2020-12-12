@@ -60,16 +60,16 @@ sprob_ports <- solve(prob_ports)
 #plot to see results
 plot(sprob_ports,  main = c("Baseline: Ports - 20% Targets"))
 
-writeRaster(sprob_ports, here('outputs/ports_baseline.tif'), overwrite = TRUE)
+writeRaster(sprob_ports, here('outputs/ports_baseline.tif'), overwrite = TRUE) 
 
 #Best objective 1.049229181250e+03, best bound 1.048713945055e+03, gap 0.0491%
 ```
 
 ## SCENARIO 2: TEST BOUNDARIES
 
-# Boundary Penalty = 0.5
+# Boundary Penalty = 0.001
 ```{r}
-### Now lets try setting a boundary length of 0.5
+### Now lets try setting a boundary length of 0..001
 ### OBJECTIVE: Minimize distance to ports cost  while meeting 20% representation targets, locking in MPAs, locking out oil rigs, and a boundary penalty of 0.5
 
 prob_ports_blm <- problem(cost_ports, features = features_stack) %>%
@@ -77,7 +77,7 @@ prob_ports_blm <- problem(cost_ports, features = features_stack) %>%
   add_relative_targets(0.2) %>%
   add_locked_in_constraints(mpa_raster) %>%
   add_locked_out_constraints(oil_raster) %>%
-  add_boundary_penalties(penalty=0.5) %>%
+  add_boundary_penalties(penalty=0.001) %>%
   add_gurobi_solver(gap = 0.1, time_limit = 1200)
 
 ## Print the problem to verify it is as expected   
@@ -87,7 +87,9 @@ print(prob_ports_blm )
 sprob_ports_blm <- solve(prob_ports_blm )
 
 ## Plot the solution to see what it looks like
-plot(sprob_ports_blm,  main = c("Ports: BLM = 0.5"))
+plot(sprob_ports_blm,  main = c("Ports: BLM = 0.001"))
+
+writeRaster(sprob_ports_blm, here('outputs/ports_001.tif'), overwrite = TRUE)
 ```
 
 ## Boundary penalty = 1
@@ -111,6 +113,8 @@ sprob_ports_blm_1 <- solve(prob_ports_blm_1)
 
 ## Plot the solution to see what it looks like
 plot(sprob_ports_blm_1,  main = c("BLM = 1"))
+
+writeRaster(sprob_ports_blm_1, here('outputs/ports_1.tif'), overwrite = TRUE)
 
 ```
 
@@ -179,6 +183,8 @@ sprob_ports_10 <- solve(ports_10)
 
 # plot resutls
 plot(sprob_ports_10,  main = c("Ports - 10% Targets"))
+
+writeRaster(sprob_ports_10, here('outputs/ports_10.tif'), overwrite = TRUE)
 ```
 
 # SCENARIO 5: 50% Targets
@@ -198,6 +204,8 @@ sprob_ports_50 <- solve(ports_50)
 
 # print results
 plot(sprob_ports_50,  main = c("Ports - 50% Targets"))
+
+writeRaster(sprob_ports_50, here('outputs/ports_50.tif'), overwrite = TRUE)
 
 ```
 
