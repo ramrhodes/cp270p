@@ -62,6 +62,7 @@ plot(sprob_ports,  main = c("Baseline: Ports - 20% Targets"))
 
 writeRaster(sprob_ports, here('outputs/ports_baseline.tif'), overwrite = TRUE)
 
+#Best objective 1.049229181250e+03, best bound 1.048713945055e+03, gap 0.0491%
 ```
 
 ## SCENARIO 2: TEST BOUNDARIES
@@ -154,6 +155,10 @@ sprob_ports_no_mpas <- solve(prob_ports_no_mpas)
 
 plot(sprob_ports_no_mpas,  main = c("Fishing Pressure - no MPAs"))
 
+writeRaster(sprob_ports_no_mpas, here('outputs/ports_mpas.tif'), overwrite = TRUE)
+
+#Optimal solution found (tolerance 1.00e-01)
+#Best objective 1.046915289600e+03, best bound 1.046556968228e+03, gap #0.0342%
 ## Now we can compare this result to the baseline result found in Scenario 1
 ```
 
